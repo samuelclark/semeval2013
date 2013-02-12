@@ -1,0 +1,7 @@
+*.pyc
+*~
+taskA/
+taskB/
+ark-tweet-nlp-0.3.2/
+data/
+subclues.tff
