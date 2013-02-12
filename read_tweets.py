@@ -11,6 +11,11 @@ from polarity import parse_polarity_file, PolarityWord,ScoredTweet,EvaluateScore
 import nltk
 from parse_tagged import load_parsed_tweets
 
+# where the tagged tweets currently are -- can change this to command line if preferable
+initialtagged = "tagged/tagged_tweeti-a-sub.dist.txt"
+b1tagged = "tagged/tagged_b1_tweeti-a-dist.txt"
+
+
 if __name__=='__main__':
     try:
         tsvfile = sys.argv[1]
@@ -28,8 +33,9 @@ if __name__=='__main__':
     tweets = utils.load_tweets(pickle_file)
 
     # read tagged stuff
-    tag_map,tagger,tagged_tweets = load_parsed_tweets()   #probably fix this based on a parameter
-
+    tag_map,tagger,tagged_tweets = load_parsed_tweets(b1tagged)   #probably fix this based on a parameter
+    print len(tagged_tweets)
+    print len(tweets)
     for (key, tagged) in tagged_tweets.items():
         (uid,sid)=key #who cares
         untagged_tweet = tweets[key]
@@ -69,8 +75,6 @@ if __name__=='__main__':
     word_prob = analyze.get_word_probabilities()
     length_prob = analyze.get_length_probabilities()
     polarity_dict = parse_polarity_file("subclues.tff")
-
-    # temp code to look at word_probabilities
 
 
     for key,tweet in tagged_tweets.items():

@@ -1,0 +1,3 @@
+taskA/b1_tweeti-a.dist.arc	a4a6b2ea904c34f3d68c83765ca9fcaa
+taskA/tweeti-a-sub.dist.arc	1dda89cc8d494b08639366ae39362cd5
+taskB/tweeti-b-sub.dist.arc	889430dc2db899de1ce1f0a44fa1713b
