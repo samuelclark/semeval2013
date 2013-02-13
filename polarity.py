@@ -69,7 +69,7 @@ class ScoredTweet(object):
 
 	def __str__(self):
 		buf = "~"*80
-		class_str = "{3}\nScoredTweet:\nkey:{4}\nword_score:{0}\nlength_score{1}\npolarity_score{2}\ncorrect_label:{5}\n".format(self.word_score,self.length_score,self.polarity_score,buf,self.key,self.correct_label)
+		class_str = "{3}\nScoredTweet:\nkey:{4}\nword_score:{0}\nratio_score{6}\nlength_score{1}\npolarity_score{2}\ncorrect_label:{5}\n".format(self.word_score,self.length_score,self.polarity_score,buf,self.key,self.correct_label,self.ratio_score)
 		return class_str
 
 
@@ -81,8 +81,10 @@ class ScoredTweet(object):
 		result = {}
 		total = sum(self.word_score.values())
 		for each in self.word_score:
-
-			result[each] = result.get(each,0)+(self.word_score[each]/total)
+			try:
+				result[each] = result.get(each,0)+(self.word_score[each]/total)
+			except:
+				result[each] = result.get(each,0)
 		return result
 
 	def _rank_score_dict(self,target_dict):
@@ -166,10 +168,48 @@ class EvaluateScore(object):
 		outfile.write(final_str)
 		outfile.close()
 
+	def filter_by_label(self,label="objective"):
+		non_obj = []
+		for key,val in self.scored_dict.items():
+			if val.correct_label!=label:
+				non_obj.append(key)
+		print "found {0} tweets without label {1}\n".format(len(non_obj),label)
+		return non_obj
+
+	def display_keys(self,keys = []):
+		# function to see how well the log based aggreation is working
+		count = 0
+		buf = "*" * 80
+		wrong = []
+		results = []
+		if not keys:
+			keys = self.filter_by_label()
+		for each in keys:
+
+			result = self.scored_dict[each]
+			score = result.ranked_dict["ranked_words"]
+
+			choice = score[0][0]
+			correct = result.correct_label
+			results.append((choice,correct))
+			if choice== correct:
+				count+=1
+			else:
+				wrong.append((each,choice,correct))
+			res_str = "key: {0}\nlabel: {1}\nchoice: {4}\nword_rank: {2}\n{3}\n".format(each,correct,score,buf,choice)
+			print res_str
+		print "result = {0}/{1}\n".format(count,len(keys))
+		return wrong,results
 
 
-
-
+	def score_matrix(self,results):
+		score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.}
+		result_matrix = {"objective":score_dict.copy(),"positive":score_dict.copy(),"neutral":score_dict.copy(),"negative":score_dict.copy()}
+		for guess,correct in results:
+			selection = result_matrix[correct]
+			selection[guess] = selection.get(guess,0)+1
+			#print guess,correct,selection
+		print result_matrix
 
 
 

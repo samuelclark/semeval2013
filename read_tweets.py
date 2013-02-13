@@ -10,6 +10,7 @@ from analyze_tweets import AnalyzeTweets
 from polarity import parse_polarity_file, PolarityWord,ScoredTweet,EvaluateScore
 import nltk
 from parse_tagged import load_parsed_tweets
+import math
 
 # where the tagged tweets currently are -- can change this to command line if preferable
 initialtagged = "tagged/tagged_tweeti-a-sub.dist.txt"
@@ -34,8 +35,7 @@ if __name__=='__main__':
 
     # read tagged stuff
     tag_map,tagger,tagged_tweets = load_parsed_tweets(b1tagged)   #probably fix this based on a parameter
-    print len(tagged_tweets)
-    print len(tweets)
+
     for (key, tagged) in tagged_tweets.items():
         (uid,sid)=key #who cares
         untagged_tweet = tweets[key]
@@ -73,8 +73,18 @@ if __name__=='__main__':
     scored_dict = {}
     analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A")
     word_prob = analyze.get_word_probabilities()
+    once = [key for key in word_prob if word_prob[key]['occurences']==1]
+    for o in once:
+        word_prob.pop(o)
     length_prob = analyze.get_length_probabilities()
     polarity_dict = parse_polarity_file("subclues.tff")
+    total_label_probabilities = {}
+    for key,inst in instances.items():
+        total_label_probabilities[inst.label] = total_label_probabilities.get(inst.label,0)+1
+    for label in total_label_probabilities:
+        total_label_probabilities[label] = float(total_label_probabilities[label])/float(len(instances))
+    print total_label_probabilities
+
 
 
     for key,tweet in tagged_tweets.items():
@@ -82,7 +92,31 @@ if __name__=='__main__':
         polarity_score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.,"both":0.}
 
         for (word,tag) in tweet:
-            for label in word_prob[word]:
+            for label in word_prob.get(word,[]):
+                if label!="occurences":
+                    overall = total_label_probabilities[label]
+                    word_score = word_prob[word][label]
+                    log_score = -(math.log(overall/word_score))
+                    res_str = "{4} {0} o:{1} w:{2} l:{3} \n".format(label,overall,word_score,log_score,word)
+                    print res_str
+
+                    word_score_dict[label]+= log_score
+
+            new_tag = tagger(tag)
+            tag = new_tag  # hmmmmm
+            if (word, new_tag) in polarity_dict:
+                polarity_score_dict[polarity_dict[(word, new_tag)].polarity]+=1
+        length_score_dict = length_prob[len(instances[key])]
+        scored_tweet = ScoredTweet(length_prob=length_score_dict,word_prob=word_score_dict,polarity_score=polarity_score_dict,key=key,correct_label = instances[key].label)
+        scored_dict[key] = scored_tweet
+
+
+    """for key,tweet in tagged_tweets.items():
+        word_score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.}
+        polarity_score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.,"both":0.}
+
+        for (word,tag) in tweet:
+            for label in word_prob.get(word,[]):
                 if label!="occurences":
                     word_score_dict[label]+= word_prob[word][label]
 
@@ -93,8 +127,10 @@ if __name__=='__main__':
         length_score_dict = length_prob[len(instances[key])]
         scored_tweet = ScoredTweet(length_prob=length_score_dict,word_prob=word_score_dict,polarity_score=polarity_score_dict,key=key,correct_label = instances[key].label)
         scored_dict[key] = scored_tweet
-        # scored_dict = {<key>:ScoredTweetInstance}
+        # scored_dict = {<key>:ScoredTweetInstance}"""
     es = EvaluateScore(scored_dict=scored_dict)
+    w,r = es.display_keys()
+   # es.score_matrix(r)
 
 
 
