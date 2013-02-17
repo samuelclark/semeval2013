@@ -153,8 +153,7 @@ class AnalyzeTweets(object):
                 results[key] = {"context":context,"target_phrase":target_phrase}
             except:
                 skipped +=1
-                print tweet_words,start,end,len(tweet_words)
-                print "PARSING ERROR\t",key,IndexError,"skipped={0}".format(skipped)
+                # print "PARSING ERROR\t",key,IndexError,"skipped={0}".format(skipped)
 
         return results
 

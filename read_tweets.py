@@ -23,45 +23,9 @@ import time
 
 
 
-
-
-
-if __name__=='__main__':
-    # so this will eventually be python read_tweets.py <tsvfile> <task> <training> <pickle files if training false>
-    # or we can hardcode the best word_prob and length_prob files (i.e the biggest)
-    # should we eventually combine multiple word probs into a master ???
-    try:
-        train = lambda x: True if x == "True" else False
-        tsvfile = sys.argv[1]
-        task = sys.argv[2]
-        training = train(sys.argv[3])
-
-
-        if task not in ['A', 'B']:
-            sys.stderr.write("Must provide task as A or B\n")            
-            sys.exit(1)
-        if training not in [True,False]:
-            sys.stderr.write("Must provide True or False if data is a traning set\n")
-            sys.exit(1)
-    except IndexError:
-        sys.stderr.write("read_tweets.py <tsvfile> <task> <training>")
-        sys.exit(1)
+def build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances):
 
     scored_dict = {}
-    tweets,instances,tag_map,tagger,tagged_tweets = prepare_tweet_data(tsvfile,task)
-    polarity_dict = parse_polarity_file("subclues.tff")
-    analyze,word_prob,length_prob = prepare_prob_dicts(tweets,instances,training,tsvfile)
-    # remove singular occurrences from word_prob ....
-    once = [key for key in word_prob if word_prob[key]['occurences']==1]
-    print "removing {0}/{1} words from word_prob".format(len(once),len(word_prob))
-    for o in once:
-        word_prob.pop(o)
-
-    total_label_probabilities = analyze.get_tweet_distribution()
-    ct_dict = analyze.build_context_target_dict(tagged_tweets)
-
-
-
 
     for key,tweet in tagged_tweets.items():
         word_score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.}
@@ -85,10 +49,46 @@ if __name__=='__main__':
         length_score_dict = length_prob[len(instances[key])]
         scored_tweet = ScoredTweet(length_prob=length_score_dict,word_prob=word_score_dict,polarity_score=polarity_score_dict,key=key,correct_label = instances[key].label)
         scored_dict[key] = scored_tweet
+    return scored_dict
 
 
- 
-   # es = EvaluateScore(scored_dict=scored_dict)
+if __name__=='__main__':
+    # so this will eventually be python read_tweets.py <tsvfile> <task> <training> <pickle files if training false>
+    # or we can hardcode the best word_prob and length_prob files (i.e the biggest)
+    # should we eventually combine multiple word probs into a master ???
+    try:
+        train = lambda x: True if x == "True" else False
+        tsvfile = sys.argv[1]
+        task = sys.argv[2]
+        training = train(sys.argv[3])
+
+
+        if task not in ['A', 'B']:
+            sys.stderr.write("Must provide task as A or B\n")            
+            sys.exit(1)
+        if training not in [True,False]:
+            sys.stderr.write("Must provide True or False if data is a traning set\n")
+            sys.exit(1)
+    except IndexError:
+        sys.stderr.write("read_tweets.py <tsvfile> <task> <training>")
+        sys.exit(1)
+
+    tweets,instances,tag_map,tagger,tagged_tweets = prepare_tweet_data(tsvfile,task)
+    polarity_dict = parse_polarity_file("subclues.tff")
+    analyze,word_prob,length_prob = prepare_prob_dicts(tweets,instances,training,tsvfile)
+    # remove singular occurrences from word_prob ....
+    once = [key for key in word_prob if word_prob[key]['occurences']==1]
+    print "removing {0}/{1} words from word_prob".format(len(once),len(word_prob))
+    for o in once:
+        word_prob.pop(o)
+
+    total_label_probabilities = analyze.get_tweet_distribution()
+    ct_dict = analyze.build_context_target_dict(tagged_tweets)
+    scored_dict = build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances)
+
+
+
+    es = EvaluateScore(scored_dict=scored_dict)
     #w,r = es.display_keys()
    # es.score_matrix(r)
 
