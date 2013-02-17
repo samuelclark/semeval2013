@@ -47,25 +47,19 @@ if __name__=='__main__':
         sys.stderr.write("read_tweets.py <tsvfile> <task> <training>")
         sys.exit(1)
 
-    tweets,instances,tag_map,tagger,tagged_tweets = prepare_tweet_data(tsvfile,task)
-  
     scored_dict = {}
+    tweets,instances,tag_map,tagger,tagged_tweets = prepare_tweet_data(tsvfile,task)
     polarity_dict = parse_polarity_file("subclues.tff")
-    analyze,word_prob,length_prob= prepare_prob_dicts(tweets,instances,training,tsvfile)
-   
-
-       # so this seems super slow... but might be my computer :)
-       # word_prob = load_pickle(word_file)
-       # length_prob = load_pickle(length_file)
-
-
-    # here we pop all the words that only occur once
+    analyze,word_prob,length_prob = prepare_prob_dicts(tweets,instances,training,tsvfile)
+    # remove singular occurrences from word_prob ....
     once = [key for key in word_prob if word_prob[key]['occurences']==1]
-
     print "removing {0}/{1} words from word_prob".format(len(once),len(word_prob))
     for o in once:
         word_prob.pop(o)
+
     total_label_probabilities = analyze.get_tweet_distribution()
+    ct_dict = analyze.build_context_target_dict(tagged_tweets)
+
 
 
 
@@ -93,23 +87,7 @@ if __name__=='__main__':
         scored_dict[key] = scored_tweet
 
 
-    """for key,tweet in tagged_tweets.items():
-        word_score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.}
-        polarity_score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.,"both":0.}
-
-        for (word,tag) in tweet:
-            for label in word_prob.get(word,[]):
-                if label!="occurences":
-                    word_score_dict[label]+= word_prob[word][label]
-
-            new_tag = tagger(tag)
-            tag = new_tag  # hmmmmm
-            if (word, new_tag) in polarity_dict:
-                polarity_score_dict[polarity_dict[(word, new_tag)].polarity]+=1
-        length_score_dict = length_prob[len(instances[key])]
-        scored_tweet = ScoredTweet(length_prob=length_score_dict,word_prob=word_score_dict,polarity_score=polarity_score_dict,key=key,correct_label = instances[key].label)
-        scored_dict[key] = scored_tweet
-        # scored_dict = {<key>:ScoredTweetInstance}"""
+ 
    # es = EvaluateScore(scored_dict=scored_dict)
     #w,r = es.display_keys()
    # es.score_matrix(r)

@@ -135,25 +135,25 @@ class AnalyzeTweets(object):
 
 
 
-    def build_context_target_dict(self):
+    def build_context_target_dict(self,tweets):
         results = {}
         skipped = 0
-        for key,tweet in self.tweets.items():
-            tweet_words = tweet.get_word_list()
+        for key,tweet_words in tweets.items():
             start = self.instances[key].startpos
             end = self.instances[key].endpos
             try:
                 if self.__check_unavailable(tweet_words):
                     pass
                 elif start == end:
-                    target_phrase = tweet_words[start-1]
-                    context = tweet_words[:start-1]
+                    target_phrase = tweet_words[start]
+                    context = tweet_words[:end-1] +tweet_words[:start]
                 else:
                     target_phrase = tweet_words[start:end]
-                    context = tweet_words[:start]
+                    context = tweet_words[:start] + tweet_words[end:]
                 results[key] = {"context":context,"target_phrase":target_phrase}
             except:
                 skipped +=1
+                print tweet_words,start,end,len(tweet_words)
                 print "PARSING ERROR\t",key,IndexError,"skipped={0}".format(skipped)
 
         return results
