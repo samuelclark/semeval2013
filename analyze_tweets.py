@@ -117,22 +117,10 @@ class AnalyzeTweets(object):
         return word_dict
 
 
-
-
-
-
     def clean_word(self,word):
         clean_word = word.translate(string.maketrans("",""), string.punctuation)
         clean_word = clean_word.lower()
         return clean_word
-
-
-
-
-
-
-
-
 
 
     def build_context_target_dict(self,tweets):
@@ -156,12 +144,3 @@ class AnalyzeTweets(object):
                 # print "PARSING ERROR\t",key,IndexError,"skipped={0}".format(skipped)
 
         return results
-
-
-### Usage Examples ###
-#  a = AnalyzeTweets(instances=instances,tweets=tweets,task="A")
-# inst_length_list = a.get_instances_of_phraselength()
-# length_label_dict = a.get_length_by_label_dict()
-# context_target_dict = a.build_context_target_dict()
-
-
