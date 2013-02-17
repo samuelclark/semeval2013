@@ -1,7 +1,7 @@
 
 
 
-def parse_polarity_file(fname):
+def parse_polarity_file(fname,DEBUG=False):
 	# parses subclues.tff
 	# returns {word:<PolarityWord Instance>}
 	polarity_dict = {}
@@ -18,8 +18,9 @@ def parse_polarity_file(fname):
 				
 
 			except ValueError as e:
-				print e
-		s = "loaded polarity dict from {0}\n".format(f)
+				if DEBUG:
+					print e
+		s = "loaded polarity dict from {0}".format(f.name)
 		print s
 		return polarity_dict
 

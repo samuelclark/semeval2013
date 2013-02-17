@@ -1,12 +1,13 @@
 from collections import defaultdict
 import nltk
 import string
-
+import cPickle
 class AnalyzeTweets(object):
     def __init__(self,**kargs):
         self.tweets = kargs["tweets"]
         self.instances = kargs["instances"]
         self.num_instances = len(self.instances)
+        self.pickle = kargs["pickle"]
 
         if "task" in kargs:
             self.task = kargs["task"]
@@ -59,7 +60,7 @@ class AnalyzeTweets(object):
         return length_dict
 
 
-    def get_length_probabilities(self):
+    def get_length_probabilities(self,pickfile):
         length_probability_dict = defaultdict(list)
         for key,instance in self.instances.items():
             length_probability_dict[len(instance)].append(instance.label)
@@ -70,10 +71,25 @@ class AnalyzeTweets(object):
                 result_dict[label]= float(occurences)/float(label_distributions.N())
             result_dict["occurences"] = label_distributions.N()
             length_probability_dict[key] = result_dict
+        if self.pickle:
+            length_file = open(pickfile,"w")
+            print "pickling length probs to to {0}".format(length_file.name)
+            cPickle.dump(length_probability_dict,length_file)
+            length_file.close()
 
         return length_probability_dict
 
-    def get_word_probabilities(self):
+    def get_tweet_distribution(self):
+        total_label_probabilities = {}
+        for key,inst in self.instances.items():
+            total_label_probabilities[inst.label] = total_label_probabilities.get(inst.label,0)+1
+        for label in total_label_probabilities:
+            total_label_probabilities[label] = float(total_label_probabilities[label])/float(len(self.instances))
+        print "overall distribution of {0} tweets = {1}\n".format(self.num_instances,total_label_probabilities)
+        return total_label_probabilities
+
+
+    def get_word_probabilities(self,pickfile):
         # word_dict = defaultdict(list)
         word_dict = {}
         for key,tweet in self.tweets.items():
@@ -91,7 +107,15 @@ class AnalyzeTweets(object):
                 result_dict[label]= float(occurences)/float(label_distributions.N())
             result_dict["occurences"] = label_distributions.N()
             word_dict[key] = result_dict
+
+        if self.pickle:
+            word_file = open(pickfile,"w")
+            print "pickling word probs to to {0}".format(word_file.name)
+            cPickle.dump(word_dict,word_file)
+            word_file.close()
         return word_dict
+
+
 
 
 
