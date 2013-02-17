@@ -5,11 +5,10 @@ import cPickle
 
 class AnalyzeTweets(object):
     def __init__(self,**kargs):
-        self.tweets = kargs["tweets"]
+        self.tagged_tweets = kargs["tagged_tweets"]
         self.instances = kargs["instances"]
         self.num_instances = len(self.instances)
         self.pickle = kargs["pickle"]
-
         if "task" in kargs:
             self.task = kargs["task"]
         else:
@@ -80,21 +79,12 @@ class AnalyzeTweets(object):
 
         return length_probability_dict
 
-    def get_tweet_distribution(self):
-        total_label_probabilities = {}
-        for key,inst in self.instances.items():
-            total_label_probabilities[inst.label] = total_label_probabilities.get(inst.label,0)+1
-        for label in total_label_probabilities:
-            total_label_probabilities[label] = float(total_label_probabilities[label])/float(len(self.instances))
-        print "overall distribution of {0} tweets = {1}\n".format(self.num_instances,total_label_probabilities)
-        return total_label_probabilities
-
-
     def get_word_probabilities(self,pickfile):
         # word_dict = defaultdict(list)
         word_dict = {}
-        for key,tweet in self.tweets.items():
-            word_list = tweet.get_word_list()
+        for key,tweet in self.tagged_tweets.items():
+
+            word_list = tweet
 
             label = self.instances[key].label
             for word in word_list:
@@ -115,6 +105,18 @@ class AnalyzeTweets(object):
             cPickle.dump(word_dict,word_file)
             word_file.close()
         return word_dict
+
+
+    def get_tweet_distribution(self):
+        total_label_probabilities = {}
+        for key,inst in self.instances.items():
+            total_label_probabilities[inst.label] = total_label_probabilities.get(inst.label,0)+1
+        for label in total_label_probabilities:
+            total_label_probabilities[label] = float(total_label_probabilities[label])/float(len(self.instances))
+        print "overall distribution of {0} tweets = {1}\n".format(self.num_instances,total_label_probabilities)
+        return total_label_probabilities
+
+
 
 
     def clean_word(self,word):

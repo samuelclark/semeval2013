@@ -8,7 +8,7 @@ import math
 import os
 import time
 
-
+from synonym import Synonyms
 
 # EVALUATION DATA
 # word_prob is a dictionary of {<word>:{"polarity":probability(0-1)}} pairs 
@@ -75,7 +75,7 @@ if __name__=='__main__':
 
     tweets,instances,tag_map,tagger,tagged_tweets = prepare_tweet_data(tsvfile,task)
     polarity_dict = parse_polarity_file("subclues.tff")
-    analyze,word_prob,length_prob = prepare_prob_dicts(tweets,instances,training,tsvfile)
+    analyze,word_prob,length_prob = prepare_prob_dicts(tagged_tweets,instances,training,tsvfile)
     # remove singular occurrences from word_prob ....
     once = [key for key in word_prob if word_prob[key]['occurences']==1]
     print "removing {0}/{1} words from word_prob".format(len(once),len(word_prob))
@@ -87,8 +87,9 @@ if __name__=='__main__':
     scored_dict = build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances)
 
 
-
+   # print word_prob
     es = EvaluateScore(scored_dict=scored_dict)
+    s = Synonyms(words = word_prob.keys())
     #w,r = es.display_keys()
    # es.score_matrix(r)
 

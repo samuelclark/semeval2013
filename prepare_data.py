@@ -3,8 +3,8 @@ import os
 from instance import Instance
 import utils
 import time
-from analyze_tweets import AnalyzeTweets
 import cPickle
+from analyze_tweets import AnalyzeTweets
 # analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A")
 
 def prepare_tweet_data(tsvfile,task):
@@ -122,7 +122,7 @@ def load_pickle(fname):
         print "loading {0} failed".format(fname)
         print e
 
-def prepare_prob_dicts(tweets,instances,training,tsvfile):
+def prepare_prob_dicts(tagged_tweets,instances,training,tsvfile):
     # builds word probability and length probability dicts
     # tweets: dict of tweets 
     # instances: dict of instances
@@ -144,19 +144,19 @@ def prepare_prob_dicts(tweets,instances,training,tsvfile):
     elif not word_file.split("/")[1] in pickles or not length_file.split("/")[1] in pickles:
         # if we havn't pickled this data yet.
         print "no pickle files for {0}, creating ...".format(tsvfile)
-        analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A",pickle=True)
+        analyze = AnalyzeTweets(instances=instances,tagged_tweets=tagged_tweets,task="A",pickle=True)
         word_prob = analyze.get_word_probabilities(word_file)
         length_prob = analyze.get_length_probabilities(length_file)
     else:
         # this is when were doing a training set that is already pickled
         # pickling is faster for current data
         print "loaded word_prob from {0} length_prob from {1}".format(word_file,length_file)
-        analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A",pickle=False)
+        analyze = AnalyzeTweets(instances=instances,tagged_tweets=tagged_tweets,task="A",pickle=False)
         word_prob = load_pickle(word_file)
         length_prob = load_pickle(length_file)
     e = time.time()
     elapsed = e-s
-    print "created word/length probability dictionaries --> {0} seconds".format(elapsed)
+    print "created word/length probability dictionaries --> {0} seconds !!!".format(elapsed)
     return analyze,word_prob,length_prob
 
 
