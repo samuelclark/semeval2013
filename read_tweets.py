@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
 import sys
-from analyze_tweets import AnalyzeTweets
+
 from polarity import parse_polarity_file, PolarityWord,ScoredTweet,EvaluateScore
-from prepare_data import prepare_tweet_data
+from prepare_data import prepare_tweet_data,prepare_prob_dicts
 import math
-import cPickle
 import os
 import time
 
@@ -24,48 +23,8 @@ import time
 
 
 
-def load_pickle(fname):
-    try:
-        fptr = open(fname,"r")
-        data = cPickle.load(fptr)
-        fptr.close()
-        return data
-    except IOError as e:
-
-        print "loading {0} failed".format(fname)
-        print e
 
 
-def prepare_prob_dicts(tweets,instances,training,tsvfile):
-    s = time.time()
-    pklfile = tsvfile.split("/")[1]
-    word_file = "pickles/word_"+pklfile.replace("tsv","pkl")
-    length_file = "pickles/length_"+pklfile.replace("tsv","pkl")
-    pickles = os.listdir("pickles/")
-    if not training:
-        # so this is where we will load our pickled training data word_prob and length_prob to use for evaluation on an untagged set
-        # path to master pickle fiels here
-        print "Testing using {0}\t{1}".format(word_file,length_file)
-        word_prob = load_pickle(word_file)
-        length_prob = load_pickle(length_file)
-
-    elif not word_file.split("/")[1] in pickles or not length_file.split("/")[1] in pickles:
-        # if we havn't pickled this data yet.
-        print "no pickle files for {0}, creating ...".format(tsvfile)
-        analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A",pickle=True)
-        word_prob = analyze.get_word_probabilities(word_file)
-        length_prob = analyze.get_length_probabilities(length_file)
-    else:
-        # this is when were doing a training set that is already pickled
-        # pickling is faster for current data
-        print "loaded word_prob from {0} length_prob from {1}".format(word_file,length_file)
-        analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A",pickle=False)
-        word_prob = load_pickle(word_file)
-        length_prob = load_pickle(length_file)
-    e = time.time()
-    elapsed = e-s
-    print "created word/length probability dictionaries --> {0} seconds".format(elapsed)
-    return analyze,word_prob,length_prob
 
 if __name__=='__main__':
     # so this will eventually be python read_tweets.py <tsvfile> <task> <training> <pickle files if training false>

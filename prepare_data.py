@@ -3,14 +3,17 @@ import os
 from instance import Instance
 import utils
 import time
+from analyze_tweets import AnalyzeTweets
+import cPickle
 # analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A")
 
 def prepare_tweet_data(tsvfile,task):
-    s = time.time()
-    
-        
-    tweets_file = tsvfile.replace(".tsv",".dat")
+    # this function is a wrapper for getting the tweets and tagged data ready
+    # calls many helperfunctions
+    # returns all the core data to read_tweets
 
+    s = time.time()
+    tweets_file = tsvfile.replace(".tsv",".dat")
     pickle_file = tsvfile.replace(".tsv",".pkl")
     content_file = "content_{0}".format(tsvfile.split("/")[1])
     tweets = utils.load_tweets(pickle_file)
@@ -33,7 +36,6 @@ def prepare_tweet_data(tsvfile,task):
     for row in tsvdata:
         (sid, uid) = row[:2]
         key = (uid, sid)
-        tweet = tweets[key]
         if task == 'A':
             instances[key] = Instance(uid, sid, task=task, startpos=int(row[2]), endpos=int(row[3]), label=row[4])
         else:
@@ -42,14 +44,13 @@ def prepare_tweet_data(tsvfile,task):
     e = time.time()
     elapsed = e-s
     print "loading tweets and parsing tags --> {0} seconds".format(elapsed)
-
     return tweets,instances,tag_map,tagger,tagged_tweets
 
 def tag_content(content_file,tweets):
-	# this function writes <uid sid tweet\n> to an out file
-	# this outfile is then tagged by the arc tagger
-
-    # outfile = open("tagged/pretag_b1_tweeti-a-dist.txt","w")
+    # content_file: destination for pre-tag output
+    # tweets : dict of tweets
+	# this function writes <uid sid tweet\n> to content_file
+	# this content_file is then tagged by the arc tagger
 
     outfile = open(content_file,"w")
     for key,tweet in tweets.items():
@@ -107,6 +108,57 @@ def load_parsed_tweets(taggedfile):
 
     tweet_file.close()
     return tag_map, tagger, tweet_dict
+
+
+def load_pickle(fname):
+    # loads a pickle from a file and returns it 
+    try:
+        fptr = open(fname,"r")
+        data = cPickle.load(fptr)
+        fptr.close()
+        return data
+    except IOError as e:
+
+        print "loading {0} failed".format(fname)
+        print e
+
+def prepare_prob_dicts(tweets,instances,training,tsvfile):
+    # builds word probability and length probability dicts
+    # tweets: dict of tweets 
+    # instances: dict of instances
+    # training: boolean
+    # tsvfile: datafile
+    # returns <AnalyzeTweetObj> word_prob length_prob
+    s = time.time()
+    pklfile = tsvfile.split("/")[1]
+    word_file = "pickles/word_"+pklfile.replace("tsv","pkl")
+    length_file = "pickles/length_"+pklfile.replace("tsv","pkl")
+    pickles = os.listdir("pickles/")
+    if not training:
+        # so this is where we will load our pickled training data word_prob and length_prob to use for evaluation on an untagged set
+        # path to master pickle fiels here
+        print "Testing using {0}\t{1}".format(word_file,length_file)
+        word_prob = load_pickle(word_file)
+        length_prob = load_pickle(length_file)
+
+    elif not word_file.split("/")[1] in pickles or not length_file.split("/")[1] in pickles:
+        # if we havn't pickled this data yet.
+        print "no pickle files for {0}, creating ...".format(tsvfile)
+        analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A",pickle=True)
+        word_prob = analyze.get_word_probabilities(word_file)
+        length_prob = analyze.get_length_probabilities(length_file)
+    else:
+        # this is when were doing a training set that is already pickled
+        # pickling is faster for current data
+        print "loaded word_prob from {0} length_prob from {1}".format(word_file,length_file)
+        analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A",pickle=False)
+        word_prob = load_pickle(word_file)
+        length_prob = load_pickle(length_file)
+    e = time.time()
+    elapsed = e-s
+    print "created word/length probability dictionaries --> {0} seconds".format(elapsed)
+    return analyze,word_prob,length_prob
+
 
 
 

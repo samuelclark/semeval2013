@@ -2,6 +2,7 @@ from collections import defaultdict
 import nltk
 import string
 import cPickle
+
 class AnalyzeTweets(object):
     def __init__(self,**kargs):
         self.tweets = kargs["tweets"]
@@ -134,25 +135,23 @@ class AnalyzeTweets(object):
 
 
 
-    def build_context_target_dict(self,length=6):
-        inst_list = self.get_instances_of_phraselength(length)
+    def build_context_target_dict(self):
         results = {}
         skipped = 0
-        for key in inst_list:
-            tweet_words = self.tweets[key].get_word_list()
+        for key,tweet in self.tweets.items():
+            tweet_words = tweet.get_word_list()
             start = self.instances[key].startpos
             end = self.instances[key].endpos
             try:
                 if self.__check_unavailable(tweet_words):
                     pass
-
                 elif start == end:
                     target_phrase = tweet_words[start-1]
                     context = tweet_words[:start-1]
                 else:
                     target_phrase = tweet_words[start:end]
                     context = tweet_words[:start]
-                results[key] = {"context":context,"target_phrase":target_phrase,"label":self.instances[key].label}
+                results[key] = {"context":context,"target_phrase":target_phrase}
             except:
                 skipped +=1
                 print "PARSING ERROR\t",key,IndexError,"skipped={0}".format(skipped)
