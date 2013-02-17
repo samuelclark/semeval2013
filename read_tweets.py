@@ -9,7 +9,7 @@ from tweet import Tweet
 from analyze_tweets import AnalyzeTweets
 from polarity import parse_polarity_file, PolarityWord,ScoredTweet,EvaluateScore
 import nltk
-from parse_tagged import load_parsed_tweets
+from parse_tagged import load_parsed_tweets, tag_content
 import math
 
 # where the tagged tweets currently are -- can change this to command line if preferable
@@ -31,10 +31,12 @@ if __name__=='__main__':
     tweets_file = tsvfile.replace(".tsv",".dat")
 
     pickle_file = tsvfile.replace(".tsv",".pkl")
+    content_file = "content_{0}".format(tsvfile.split("/")[1])
     tweets = utils.load_tweets(pickle_file)
+    tagged_file = tag_content(content_file,tweets)
 
     # read tagged stuff
-    tag_map,tagger,tagged_tweets = load_parsed_tweets(b1tagged)   #probably fix this based on a parameter
+    tag_map,tagger,tagged_tweets = load_parsed_tweets(tagged_file)   #probably fix this based on a parameter
 
     for (key, tagged) in tagged_tweets.items():
         (uid,sid)=key #who cares
@@ -98,7 +100,7 @@ if __name__=='__main__':
                     word_score = word_prob[word][label]
                     log_score = -(math.log(overall/word_score))
                     res_str = "{4} {0} o:{1} w:{2} l:{3} \n".format(label,overall,word_score,log_score,word)
-                    print res_str
+                   # print res_str
 
                     word_score_dict[label]+= log_score
 
@@ -128,8 +130,8 @@ if __name__=='__main__':
         scored_tweet = ScoredTweet(length_prob=length_score_dict,word_prob=word_score_dict,polarity_score=polarity_score_dict,key=key,correct_label = instances[key].label)
         scored_dict[key] = scored_tweet
         # scored_dict = {<key>:ScoredTweetInstance}"""
-    es = EvaluateScore(scored_dict=scored_dict)
-    w,r = es.display_keys()
+   # es = EvaluateScore(scored_dict=scored_dict)
+    #w,r = es.display_keys()
    # es.score_matrix(r)
 
 
