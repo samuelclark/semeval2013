@@ -18,6 +18,10 @@ from nltk.corpus import wordnet as wn
 
 #common_hypernyms
 class WordSynsets:
+	# class to wrape the nltk wordnet synset object
+	# takes in [(word,pos)]
+	# synset_dict = {(word,pos):synset}
+	
 	def __init__(self,**kargs):
 		self.tag_map = dict([("N","n"),("^","n"),("Z","n"),("S","n"),("O","n"),("L","n"),("V","v"),("R","r"),("A","a"),("D","n"),("T","n"),("P","n"),("!","n"),("$","n"),("&","n")])
 		self.words =  kargs["words"]
