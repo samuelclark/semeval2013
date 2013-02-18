@@ -8,7 +8,7 @@ import math
 import os
 import time
 
-from synonym import Synonyms
+from synsets import WordSynsets
 
 # EVALUATION DATA
 # word_prob is a dictionary of {<word>:{"polarity":probability(0-1)}} pairs 
@@ -89,7 +89,12 @@ if __name__=='__main__':
 
    # print word_prob
     es = EvaluateScore(scored_dict=scored_dict)
-    s = Synonyms(words = word_prob.keys())
+    s = WordSynsets(words = word_prob.keys())
+    sd = s.synset_dict
+    a = sd["Angel","^"]
+    m= sd["mother","N"]
+    #k = ("angel","^")
+    #p = s.get_path(k)[0]
     #w,r = es.display_keys()
    # es.score_matrix(r)
 
