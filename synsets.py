@@ -39,15 +39,10 @@ class WordSynsets:
 		syn_dict = {}
 		#outfile = open("nosynsets.txt","w")
 		for word,tag in self.words:
-			synset = wn.synsets(word.lower())
+			synset = wn.synsets(word.lower(),pos = self.tag_map.get(tag,"n"))
 
 			if synset:
-				for each in synset:
-					word_pos = self.tag_map.get(tag,"n")
-					if each.pos == word_pos:
-						# we found our match
-						choice = each
-						break
+				choice = synset[0]
 				syn_dict[(word,tag)] = choice
 			else:
 				#outfile.write(word+"\n")
@@ -66,6 +61,9 @@ class WordSynsets:
 			print "{0}{1}:{2}".format(ind,num,syn.name)
 		print "END"
 		return p
+
+
+
 
 
 

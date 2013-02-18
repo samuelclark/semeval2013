@@ -95,6 +95,17 @@ if __name__=='__main__':
     m = sd["mother","N"]
     k = ("Angel","^")
     p = s.get_path(k)[0]
+    for each,tweet in tagged_tweets.items():
+        print tweet
+        for word in tweet:
+            try:
+                syn = sd[word]
+                if syn:
+                    print syn
+            except KeyError as e:
+                print "not found: {0}".format(e.message)
+        print "\n\n"
+
     #w,r = es.display_keys()
    # es.score_matrix(r)
 
