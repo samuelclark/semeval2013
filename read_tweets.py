@@ -92,9 +92,9 @@ if __name__=='__main__':
     s = WordSynsets(words = word_prob.keys())
     sd = s.synset_dict
     a = sd["Angel","^"]
-    m= sd["mother","N"]
-    #k = ("angel","^")
-    #p = s.get_path(k)[0]
+    m = sd["mother","N"]
+    k = ("Angel","^")
+    p = s.get_path(k)[0]
     #w,r = es.display_keys()
    # es.score_matrix(r)
 
