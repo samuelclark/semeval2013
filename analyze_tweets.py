@@ -2,6 +2,11 @@ from collections import defaultdict
 import nltk
 import string
 import cPickle
+"""
+import nltk
+words = nltk.word_tokenize(my_text)
+my_bigrams = nltk.bigrams(words)
+my_trigrams = nltk.trigrams(words)"""
 
 class AnalyzeTweets(object):
     def __init__(self,**kargs):
@@ -83,7 +88,6 @@ class AnalyzeTweets(object):
         # word_dict = defaultdict(list)
         word_dict = {}
         for key,tweet in self.tagged_tweets.items():
-
             word_list = tweet
 
             label = self.instances[key].label

@@ -9,6 +9,7 @@ import os
 import time
 
 from synsets import WordSynsets
+from tweet_features import TweetFeatures
 
 # EVALUATION DATA
 # word_prob is a dictionary of {<word>:{"polarity":probability(0-1)}} pairs 
@@ -21,6 +22,9 @@ from synsets import WordSynsets
 # tagged_tweets is a dictionary of {<uid,sid>: <tagged_tweet>}
 # the tagged tweet is a list of tuples [(word1,pos1),(word2,pos2)]
 
+
+
+# foo = sorted([(k,j,log(word_prob[j].get(k,0.00000001) / total_label_probabilities[k])) for j in word_prob.keys() for k in total_label_probabilities.keys()],key=lambda x: x[2])
 
 
 def build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances):
@@ -84,16 +88,20 @@ if __name__=='__main__':
 
     total_label_probabilities = analyze.get_tweet_distribution()
     ct_dict = analyze.build_context_target_dict(tagged_tweets)
-    scored_dict = build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances)
+    tu = TweetFeatures(tagged_tweets=tagged_tweets,instances=instances,mode="unigrams",word=False,pos=True)
+    tb = TweetFeatures(tagged_tweets=tagged_tweets,instances=instances,mode="bigrams",word=True,pos=False)
+    tt = TweetFeatures(tagged_tweets=tagged_tweets,instances=instances,mode="trigrams",word=True,pos=False)
+
+
+   # scored_dict = build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances)
 
 
    # print word_prob
-    tweet_syn_dict = {}
+    """ tweet_syn_dict = {}
     es = EvaluateScore(scored_dict=scored_dict)
     s = WordSynsets(words = word_prob.keys())
     sd = s.synset_dict
     a = sd["Angel","^"]
-    m = sd["mother","N"]
     k = ("Angel","^")
     p = s.get_path(k)[0]
     for each,tweet in tagged_tweets.items():
@@ -106,7 +114,7 @@ if __name__=='__main__':
             except KeyError as e:
                 continue
                # print "not found: {0}".format(e.message)
-    tsd = tweet_syn_dict
+    tsd = tweet_syn_dict"""
 
     #w,r = es.display_keys()
    # es.score_matrix(r)

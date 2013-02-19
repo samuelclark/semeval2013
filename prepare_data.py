@@ -52,13 +52,6 @@ def tag_content(content_file,tweets):
 	# this function writes <uid sid tweet\n> to content_file
 	# this content_file is then tagged by the arc tagger
 
-    outfile = open(content_file,"w")
-    for key,tweet in tweets.items():
-        uid,sid = key
-        text = tweet.text.encode('ascii','ignore')
-        outline ="{0} {1} {2}\n".format(uid,sid,text)
-        outfile.write(outline)
-    outfile.close()
     script_path = "./ark-tweet-nlp-0.3.2/runTagger.sh --output-format conll"
     tagged_file = "tagged/{0}".format(content_file.replace("content","tagged"))
     if tagged_file.split("/")[1] in os.listdir(tagged_file.split("/")[0]):
@@ -66,7 +59,14 @@ def tag_content(content_file,tweets):
     	return tagged_file
 
     else:
-    	print "data has not been tagged .... running ark script"
+        print "data has not been tagged .... preparing output and running ark script"
+        outfile = open(content_file,"w")
+        for key,tweet in tweets.items():
+            uid,sid = key
+            text = tweet.text.encode('ascii','ignore')
+            outline ="{0} {1} {2}\n".format(uid,sid,text)
+            outfile.write(outline)
+        outfile.close()
     	command = "{0} {1} > {2}".format(script_path,content_file,tagged_file)
     	print "Calling {0}\n".format(command)
     	subprocess.call([command],shell=True)
@@ -144,6 +144,7 @@ def prepare_prob_dicts(tagged_tweets,instances,training,tsvfile):
     elif not word_file.split("/")[1] in pickles or not length_file.split("/")[1] in pickles:
         # if we havn't pickled this data yet.
         print "no pickle files for {0}, creating ...".format(tsvfile)
+        # should reset pickle to true here
         analyze = AnalyzeTweets(instances=instances,tagged_tweets=tagged_tweets,task="A",pickle=True)
         word_prob = analyze.get_word_probabilities(word_file)
         length_prob = analyze.get_length_probabilities(length_file)
