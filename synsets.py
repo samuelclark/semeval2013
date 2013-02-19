@@ -17,11 +17,16 @@ from nltk.corpus import wordnet as wn
 #hypernym_paths
 
 #common_hypernyms
+
+
+# found = 56386 ~55%
+# not_found = 45717 ~45%
+
 class WordSynsets:
 	# class to wrape the nltk wordnet synset object
 	# takes in [(word,pos)]
 	# synset_dict = {(word,pos):synset}
-	
+
 	def __init__(self,**kargs):
 		self.tag_map = dict([("N","n"),("^","n"),("Z","n"),("S","n"),("O","n"),("L","n"),("V","v"),("R","r"),("A","a"),("D","n"),("T","n"),("P","n"),("!","n"),("$","n"),("&","n")])
 		self.words =  kargs["words"]
@@ -37,11 +42,16 @@ class WordSynsets:
 	def __len__(self):
 		return len(self.words)
 
+	def synset(self,word):
+		return wn.synsets(word)
+
+	def lemmas(self,syn):
+		lem = [l.name for s in syn for l in s.lemmas]
+		return lem
 
 
 	def build_synset_dict(self):
 		syn_dict = {}
-		#outfile = open("nosynsets.txt","w")
 		for word,tag in self.words:
 			synset = wn.synsets(word.lower(),pos = self.tag_map.get(tag,"n"))
 
@@ -50,8 +60,8 @@ class WordSynsets:
 				syn_dict[(word,tag)] = choice
 			else:
 				#outfile.write(word+"\n")
+				res_str = "{0}\t{1}".format(word.lower(),self.tag_map.get(tag,"n"))
 				syn_dict[(word,tag)] = None
-		#outfile.close()
 		return syn_dict
 
 

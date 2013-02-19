@@ -88,6 +88,7 @@ if __name__=='__main__':
 
 
    # print word_prob
+    tweet_syn_dict = {}
     es = EvaluateScore(scored_dict=scored_dict)
     s = WordSynsets(words = word_prob.keys())
     sd = s.synset_dict
@@ -96,15 +97,16 @@ if __name__=='__main__':
     k = ("Angel","^")
     p = s.get_path(k)[0]
     for each,tweet in tagged_tweets.items():
-        print tweet
+        tweet_syn_dict[each] = []
         for word in tweet:
             try:
                 syn = sd[word]
-                if syn:
-                    print syn
+                tweet_syn_dict[each].append(syn)
+
             except KeyError as e:
-                print "not found: {0}".format(e.message)
-        print "\n\n"
+                continue
+               # print "not found: {0}".format(e.message)
+    tsd = tweet_syn_dict
 
     #w,r = es.display_keys()
    # es.score_matrix(r)
