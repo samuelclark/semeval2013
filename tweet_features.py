@@ -122,3 +122,24 @@ class TweetFeatures:
 						score_dict[label]+=prob_dict[ngram][label]
 			total_dict[key]= score_dict
 		return total_dict
+	def build_ct_dict(self):
+		results = {}
+		for key,tweet in self.tagged_tweets.items():
+		 	start = self.instances[key].startpos
+		 	end = self.instances[key].endpos
+		 	if end < len(tweet):
+
+			 	if start == end:
+			 		target_phrase = tweet[end-1]
+			 		
+					context = tweet[:start] + tweet[:end-1]
+				 	context = self.ngramify(context)
+				else:
+
+					target_phrase = self.ngramify(tweet[start:end])
+					context = tweet[:start] + tweet[end:]
+					context= self.ngramify(context)
+					results[key] = {"target":target_phrase,"context":context}
+		return results
+
+
