@@ -52,6 +52,7 @@ class WordSynsets:
 
 	def build_synset_dict(self):
 		syn_dict = {}
+		#outfile = open("nosynset_b1.txt","w")
 		for word,tag in self.words:
 			synset = wn.synsets(word.lower(),pos = self.tag_map.get(tag,"n"))
 
@@ -59,9 +60,10 @@ class WordSynsets:
 				choice = synset[0]
 				syn_dict[(word,tag)] = choice
 			else:
-				#outfile.write(word+"\n")
-				res_str = "{0}\t{1}".format(word.lower(),self.tag_map.get(tag,"n"))
+				#res_str = "{0}\t{1}\n".format(word.lower(),self.tag_map.get(tag,"n"))
+				#outfile.write(res_str)
 				syn_dict[(word,tag)] = None
+		#outfile.close()
 		return syn_dict
 
 
