@@ -26,34 +26,27 @@ from tweet_features import TweetFeatures
 
 # foo = sorted([(k,j,log(word_prob[j].get(k,0.00000001) / total_label_probabilities[k])) for j in word_prob.keys() for k in total_label_probabilities.keys()],key=lambda x: x[2])
 
+def build_tweet_features():
+    wopts = [True, False]
+    popts = [True, False]
+    mopts = ["unigrams","bigrams","trigrams"]
+    tf_dict = {}
+    for m in mopts:
+        for w in wopts:
+            for p in popts:
+                if (w!=False or p!=False):
+                    tf = TweetFeatures(tagged_tweets=tagged_tweets,instances=instances,mode=m,word=w,pos=p)
+                    tf_dict[(m,w,p)] = tf
+    return tf_dict
 
-def build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances):
 
-    scored_dict = {}
-
-    for key,tweet in tagged_tweets.items():
-        word_score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.}
-        polarity_score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.,"both":0.}
-
-        for (word,tag) in tweet:
-            for label in word_prob.get(word,[]):
-                if label!="occurences":
-                    overall = total_label_probabilities[label]
-                    word_score = word_prob[word][label]
-                    log_score = -(math.log(overall/word_score))
-                    res_str = "{4} {0} o:{1} w:{2} l:{3} \n".format(label,overall,word_score,log_score,word)
-                   # print res_str
-
-                    word_score_dict[label]+= log_score
-
-            new_tag = tagger(tag)
-            tag = new_tag  # hmmmmm
-            if (word, new_tag) in polarity_dict:
-                polarity_score_dict[polarity_dict[(word, new_tag)].polarity]+=1
-        length_score_dict = length_prob[len(instances[key])]
-        scored_tweet = ScoredTweet(length_prob=length_score_dict,word_prob=word_score_dict,polarity_score=polarity_score_dict,key=key,correct_label = instances[key].label)
-        scored_dict[key] = scored_tweet
-    return scored_dict
+def eval_tf_dicts(tf_dict,display=False):
+    result_dict = {}
+    for key in sorted(tf_dict):
+        result_dict[key] = {"ngrams":tf_dict[key].eval_ngrams(),"context":tf_dict[key].eval_contexts()}
+        if display:
+            print key,result_dict[key]
+    return result_dict
 
 
 if __name__=='__main__':
@@ -88,39 +81,49 @@ if __name__=='__main__':
 
     total_label_probabilities = analyze.get_tweet_distribution()
     ct_dict = analyze.build_context_target_dict(tagged_tweets)
-    tu = TweetFeatures(tagged_tweets=tagged_tweets,instances=instances,mode="unigrams",word=False,pos=True)
-    tb = TweetFeatures(tagged_tweets=tagged_tweets,instances=instances,mode="bigrams",word=True,pos=False)
-    tt = TweetFeatures(tagged_tweets=tagged_tweets,instances=instances,mode="trigrams",word=True,pos=False)
+    #tf_dict = build_tweet_features()
+    #e_dict = eval_tf_dicts(tf_dict,True)
+    btf = TweetFeatures(tagged_tweets=tagged_tweets,instances=instances,mode="bigrams",word=True,pos=True)
 
 
+
+
+
+
+ 
    # scored_dict = build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances)
-
-
    # print word_prob
-    """ tweet_syn_dict = {}
-    es = EvaluateScore(scored_dict=scored_dict)
-    s = WordSynsets(words = word_prob.keys())
-    sd = s.synset_dict
-    a = sd["Angel","^"]
-    k = ("Angel","^")
-    p = s.get_path(k)[0]
-    for each,tweet in tagged_tweets.items():
-        tweet_syn_dict[each] = []
-        for word in tweet:
-            try:
-                syn = sd[word]
-                tweet_syn_dict[each].append(syn)
-
-            except KeyError as e:
-                continue
-               # print "not found: {0}".format(e.message)
-    tsd = tweet_syn_dict"""
-
     #w,r = es.display_keys()
    # es.score_matrix(r)
 
 
+"""def build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances):
 
+    scored_dict = {}
+
+    for key,tweet in tagged_tweets.items():
+        word_score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.}
+        polarity_score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.,"both":0.}
+
+        for (word,tag) in tweet:
+            for label in word_prob.get(word,[]):
+                if label!="occurences":
+                    overall = total_label_probabilities[label]
+                    word_score = word_prob[word][label]
+                    log_score = -(math.log(overall/word_score))
+                    res_str = "{4} {0} o:{1} w:{2} l:{3} \n".format(label,overall,word_score,log_score,word)
+                   # print res_str
+
+                    word_score_dict[label]+= log_score
+
+            new_tag = tagger(tag)
+            tag = new_tag  # hmmmmm
+            if (word, new_tag) in polarity_dict:
+                polarity_score_dict[polarity_dict[(word, new_tag)].polarity]+=1
+        length_score_dict = length_prob[len(instances[key])]
+        scored_tweet = ScoredTweet(length_prob=length_score_dict,word_prob=word_score_dict,polarity_score=polarity_score_dict,key=key,correct_label = instances[key].label)
+        scored_dict[key] = scored_tweet
+    return scored_dict"""
 
  
 

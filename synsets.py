@@ -79,8 +79,24 @@ class WordSynsets:
 		return p
 
 
+""" tweet_syn_dict = {}
+    es = EvaluateScore(scored_dict=scored_dict)
+    s = WordSynsets(words = word_prob.keys())
+    sd = s.synset_dict
+    a = sd["Angel","^"]
+    k = ("Angel","^")
+    p = s.get_path(k)[0]
+    for each,tweet in tagged_tweets.items():
+        tweet_syn_dict[each] = []
+        for word in tweet:
+            try:
+                syn = sd[word]
+                tweet_syn_dict[each].append(syn)
 
-
+            except KeyError as e:
+                continue
+               # print "not found: {0}".format(e.message)
+    tsd = tweet_syn_dict"""
 
 
 
