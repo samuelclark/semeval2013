@@ -1,5 +1,6 @@
 import nltk
 import math
+import re
 # todo
 # fix log scores
 # score matrix functionality
@@ -37,6 +38,12 @@ class TweetFeatures:
 
 		self.emoticon_prob = self.get_emoticon_prob()
 		self.emoticon_score = self.score_emoticon_dict()
+
+		# REPEAT LETTERS:
+
+		self.repeat_prob,self.repeat_dist = self.get_repeat_letter_prob()
+
+
 	def __usage__(self):
 		m = "mode: <unigrams> <bigrams> <trigrams>\n"
 		w = "word: <True> <False>\n"
@@ -144,10 +151,6 @@ class TweetFeatures:
 						score_dict[label]+= self.emoticon_prob[each][label]
 			total_dict[key] = score_dict
 		return total_dict
-
-
-						
-
 
 	def get_ngram_prob(self):
 		# calculates the polarity distribution for each ngram
@@ -341,3 +344,36 @@ class TweetFeatures:
 			print "cor_both: {0}\ncor_context: {1}\ncor_target: {2}\ntotalright: {4}\nwrong: {3}\n{5}\n".format(cor_both,cor_context,cor_target,wrong,right,buf)
 		#return (cor_context,cor_target,cor_both,right,wrong)
 		return right,wrong
+
+
+	def check_repeat_letters(self,word):
+		if "http" in word:
+			return []
+		res = re.findall(r'((\w)\2{2,})',word)
+		if res:
+			rep = res[0][0]
+			if rep.isdigit():
+				return []
+			if rep == "www":
+				return []
+			print word,res
+		return res
+	
+
+	def get_repeat_letter_prob(self):
+		repeat_dict = {}
+		dist_dict = {}
+		for key,tweet in self.tagged_tweets.items():
+			label = self.instances[key].label
+			for word,tag in tweet:
+				if self.check_repeat_letters(word.lower()):
+					if word not in repeat_dict:
+						repeat_dict[word] = []
+					repeat_dict[word].append(label)
+
+		for key,result in repeat_dict.items():
+			label_dist = nltk.FreqDist(result)
+			result_dict = self.calc_label_distributions(label_dist)
+			dist_dict[key] = result_dict
+
+		return repeat_dict,dist_dict

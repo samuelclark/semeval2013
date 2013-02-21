@@ -4,6 +4,7 @@ import json
 import urllib
 import StringIO
 import csv
+import sys
 
 
 def get_tweet_text(tweet_html):
