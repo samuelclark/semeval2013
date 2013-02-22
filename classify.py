@@ -1,5 +1,5 @@
 import nltk
-from nltk.corpus import names
+from nltk.metrics import BigramAssocMeasures
 import random
 
 # feature set = lists of ({<feature_dict>},classification) pairs
@@ -9,13 +9,19 @@ class TweetClassifier:
 	def __init__(self, **kargs):
 		self.tagged_tweets =kargs["tagged_tweets"]
 		self.instances = kargs["instances"]
-		self.tweet_features = kargs["tweet_features"] # contains data using prior tweet knowledge
+		#self.tweet_features = kargs["tweet_features"] # contains data using prior tweet knowledge
+
 		self.keys = self.instances.keys()
+		self.all_words = self.get_allwords()
+		self.word_dict = self.get_ranked_words()
+		self.ranked_words = sorted(self.word_dict,key = lambda x: self.word_dict[x],reverse=True)
 		# I think keys are already random but incase the hash is the same or something...
 		random.shuffle(self.keys)
 
 
-		self.featureset = self.build_featureset()
+		self.count = 0
+		self.featureset = self.build_featureset(1000)
+		#self.featureset = self.build_featureset(len(self.keys))
 		self.split1,self.split2 = len(self.featureset)/3, 2*len(self.featureset)/3
 		# self.train_keys = self.keys[:self.split1]
 		# self.dev_keys = self.keys[self.split1:self.split2]
@@ -27,34 +33,39 @@ class TweetClassifier:
 		# this is for testing should be done elsewhere
 		self.nbclassifier = self.train_nbclassifier()
 		self.nbacc = self.get_classifier_accuracy(self.nbclassifier)
-		self.nberr = self.collect_errors(self.nbclassifier)
-		self.word_fd,self.tag_fd = self.create_ranked_ngrams()
+		#self.nberr = self.collect_errors(self.nbclassifier)
+
+		#self.word_fd,self.tag_fd = self.create_ranked_ngrams()
+
 
 
 
 	def build_featurevector(self,key):
+
 
 		# create a feature dictionary and return it.
 		# features sould be in format of {"feature":value,"feature2",value2}
 		# returns <key>,feature_dict for key
 		# all the feature methods are added here 
 
-		target_length = self.get_length_feature(key)
-		emoti_count = self.get_tagcount_feature(key,"E")
-		emo_feature = self.get_emoticon_feature(key)
+		#target_length = self.get_length_feature(key)
+		#emoti_count = self.get_tagcount_feature(key,"E")
+		#emo_feature = self.get_emoticon_feature(key)
+		word_features = self.word_features(key)
+		self.count+=1
+		if self.count%500 == 0:
+			print "built {0}/{1} possible vectors".format(self.count,len(self.keys))
 
-		#obj_feature,pos_feature,neg_feature,neu_feature = self.get_ngram_features(key)	
-		#return emoti_count
-		return emo_feature
+		return word_features
 
 	def get_label(self,key):
 		return self.instances[key].label
 
 	def train_nbclassifier(self):
 		# trains nbclassifier using self.train_set
-		print "* Training NaiveBayes\ttraining_set  = {0} ...\n".format(len(self.train_set))
+		print "* Training NaiveBayes\tsize(training_set)  = {0}\n".format(len(self.train_set))
 		nbclassifier = nltk.NaiveBayesClassifier.train(self.train_set)
-		print nbclassifier.show_most_informative_features(5)
+		nbclassifier.show_most_informative_features(30)
 		return nbclassifier
 
 
@@ -64,9 +75,10 @@ class TweetClassifier:
 		print acc
 		return acc
 
-	def build_featureset(self):
+	def build_featureset(self,num):
+		print "creating featureset of {0} tweets\n".format(num)
 		# calls self.build_featurevector on each key in the tweet data and returns (feature_dict,label) 
-		featureset = [(self.build_featurevector(key),self.get_label(key)) for key in self.keys]
+		featureset = [(self.build_featurevector(key),self.get_label(key)) for key in self.keys[:num] if self.get_label(key)!="neutral"]
 		return featureset
 
 	def collect_errors(self,classifier):
@@ -86,6 +98,59 @@ class TweetClassifier:
 	# FEATURE METHODS --> NEED TO ADD TO buld_featureset() to add to classifier
 	# should really make this a new class if i get the chance
 
+	def get_allwords(self,pos=False):
+		if not pos:
+			words = [w[0] for k in self.tagged_tweets.keys() for w in self.tagged_tweets[k]]
+
+		all_words = nltk.FreqDist(w.lower() for w in words)
+		return all_words
+
+
+
+	def get_ranked_words(self,pos=True):
+		word_fd = nltk.FreqDist()
+		tag_fd = nltk.ConditionalFreqDist()
+		for key,tweet in self.tagged_tweets.items():
+			word_list = self.ngramify(tweet)
+			label = self.instances[key].label
+			for ngram in word_list:
+				# do we want the tag here
+				word_fd.inc(ngram)
+				tag_fd[label].inc(ngram)
+
+		num_obj = tag_fd["objective"].N()
+		num_pos = tag_fd["positive"].N()
+		num_neg = tag_fd["negative"].N()
+		num_neu = tag_fd["neutral"].N()
+		ngram_dict = {}
+
+		total = num_obj + num_pos + num_neu + num_neg
+		for ngram,frequency in word_fd.items():
+			obj_metric = BigramAssocMeasures.chi_sq(tag_fd['objective'][ngram],(frequency,num_obj),total)
+			pos_metric = BigramAssocMeasures.chi_sq(tag_fd['positive'][ngram],(frequency,num_pos),total)
+			neg_metric = BigramAssocMeasures.chi_sq(tag_fd['negative'][ngram],(frequency,num_neg),total)
+			neu_metric = BigramAssocMeasures.chi_sq(tag_fd['neutral'][ngram],(frequency,num_neu),total)
+			score = obj_metric + pos_metric + neg_metric + neu_metric
+			ngram_dict[ngram] = score
+		return ngram_dict
+		
+
+
+	def word_features(self,key,rank=5000):
+
+		all_words = set(self.ranked_words[:rank])
+		word_list = self.ngramify(self.tagged_tweets[key])
+
+
+
+		document_words = set(word_list)
+		features = {}
+		for word in all_words:
+			features["contains(%s)"%str(word)]=(word in document_words)
+		return features
+
+
+
 	def get_length_feature(self,key):
 		# this extracts the lenth of the target phrase as a metric
 
@@ -93,15 +158,6 @@ class TweetClassifier:
 		# can we improve this to weight low tweets more towards pos/neg
 		# lots of errors in this classification coming from this
 		return {"target_length":len(self.instances[key])}
-
-	def get_emoticon_feature(self,key):
-		e_dict = {}
-		emots = [":)",":("]
-		tweet = self.tagged_tweets[key]
-		for emo in emots:
-			 e_dict["emo_feature(%s)"%emo] = (emo in [t[0] for t in tweet])
-		return e_dict
-
 
 
 
@@ -116,18 +172,22 @@ class TweetClassifier:
 		return {"tag_count(%s)"%tag:tags.count(tag)}
 
 
-	def create_ranked_ngrams(self):
-		word_fd = nltk.FreqDist()
-		tag_fd = nltk.ConditionalFreqDist()
-		for key,tweet in self.tagged_tweets.items():
-			label = self.instances[key].label
-			for word,tag in tweet:
-				# do we want the tag here
-				word = word.lower()
-				word_fd.inc(word)
-				tag_fd[label].inc(word)
+	
 
-		return word_fd,tag_fd
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -163,12 +223,12 @@ class TweetClassifier:
 		return (obj_feature,pos_feature,neg_feature,neu_feature)
 
 
-	def ngramify(self,word_list,mode="unigrams",pos=True,word=True):
+	def ngramify(self,word_list,mode="trigrams",pos=True,word=False):
 		# creates an ngram from a word_list based on class settings
 		if word and pos:
-			selection = word_list
+			selection = [(w.lower(),p) for w,p in word_list]
 		elif word:
-			selection = [w for w,p in word_list]
+			selection = [w.lower() for w,p in word_list]
 		elif pos:
 			selection = [p for w,p in word_list]
 

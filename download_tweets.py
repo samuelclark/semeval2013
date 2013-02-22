@@ -27,6 +27,7 @@ if __name__=='__main__':
 
     #tweet_cache will be empty if the pickle_file doesn't exist
     tweet_cache = utils.load_tweets(pickle_file)
+    print tweet_cache
 
     """
     tweets_file = tsvfile.replace(".tsv",".dat")
@@ -46,7 +47,16 @@ if __name__=='__main__':
     for row in tsvdata:
         (sid, uid) = row[:2]
         cache_key = (uid,sid)
-        tweet = utils.get_tweet(uid, sid, tweet_cache, retry=retry)
+        try:
+            tweet = utils.get_tweet(uid, sid, tweet_cache, retry=retry)
+            archive_list.append(archive.ArchivedTweet("\t".join(row), tweet.get_html()))
+        except:
+            print "error --> saving/pickling at row = {0}".format(row)
+            archive.save_archive_file(archive_file, archive_list)
+            pkl = open(pickle_file, 'wb')
+            cPickle.dump(tweet_cache, pkl, -1)
+            pkl.close()
+            break
 
         #text = tweet.get_text()
         #output = ("\t".join(row)) + "\t" + text + "\n"
@@ -55,7 +65,6 @@ if __name__=='__main__':
        # if debug_level > 0:
            # sys.stderr.write(output)
 
-        archive_list.append(archive.ArchivedTweet("\t".join(row), tweet.get_html()))
 
 
     #tweets_out.close()

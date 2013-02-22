@@ -4,8 +4,8 @@ from instance import Instance
 import utils
 import time
 import cPickle
-from analyze_tweets import AnalyzeTweets
-# analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A")
+# from analyze_tweets import AnalyzeTweets
+analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A")
 
 def prepare_tweet_data(tsvfile,task):
     # this function is a wrapper for getting the tweets and tagged data ready
