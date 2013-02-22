@@ -172,7 +172,7 @@ class TweetFeatures:
 	        word_dict[key] = result_dict
 	    return word_dict
 
-   	def calc_label_distributions(self,label_distributions,log=False):
+   	def calc_label_distributions(self,label_distributions,log=True):
    		# helper function to create results for length and ngram probs
    		result_dict = {}
    		for label,occurences in label_distributions.items():
@@ -199,10 +199,15 @@ class TweetFeatures:
 			score_dict = {"objective":0.,"positive":0.,"negative":0.,"neutral":0.}
 
 			for ngram in word_list:
-				for label in prob_dict.get(ngram,[]):
-					if label != "occurences": # and label!="neutral":
-						# can add occurences here
-						score_dict[label]+=prob_dict[ngram][label]
+				if ngram in prob_dict:
+					for label in prob_dict[ngram]:
+						if label != "occurences": # and label!="neutral":
+							# can add occurences here
+							score_dict[label]+=prob_dict[ngram][label]
+				else:
+					# no ngram found:
+					continue
+
 
 			total_dict[key]= score_dict
 		return total_dict
@@ -347,11 +352,12 @@ class TweetFeatures:
 
 
 	def check_repeat_letters(self,word):
-		if "http" in word:
+		if "http" in word or "@" in word:
 			return []
 		res = re.findall(r'((\w)\2{2,})',word)
 		if res:
 			rep = res[0][0]
+
 			if rep.isdigit():
 				return []
 			if rep == "www":

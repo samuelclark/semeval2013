@@ -10,6 +10,7 @@ import time
 
 from synsets import WordSynsets
 from tweet_features import TweetFeatures
+from classify import TweetClassifier
 
 # EVALUATION DATA
 # word_prob is a dictionary of {<word>:{"polarity":probability(0-1)}} pairs 
@@ -81,20 +82,17 @@ if __name__=='__main__':
 
     total_label_probabilities = analyze.get_tweet_distribution()
     ct_dict = analyze.build_context_target_dict(tagged_tweets)
-    #tf_dict = build_tweet_features()
-    #e_dict = eval_tf_dicts(tf_dict,True)
-    btf = TweetFeatures(tagged_tweets=tagged_tweets,instances=instances,mode="bigrams",word=True,pos=True)
+    btf = TweetFeatures(tagged_tweets=tagged_tweets,instances=instances,mode="unigrams",word=True,pos=True)
+    classifier = TweetClassifier(tagged_tweets=tagged_tweets,instances=instances,tweet_features = btf)
 
 
-
-
-
+    # examples of tweet_features!
+    # tf_dict = build_tweet_features()
+    # e_dict = eval_tf_dicts(tf_dict,True)
+     #btf = TweetFeatures(tagged_tweets=tagged_tweets,instances=instances,mode="bigrams",word=True,pos=True)
+    # rd,dd = btf.get_repeat_letter_prob()
 
  
-   # scored_dict = build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances)
-   # print word_prob
-    #w,r = es.display_keys()
-   # es.score_matrix(r)
 
 
 """def build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances):
@@ -124,6 +122,10 @@ if __name__=='__main__':
         scored_tweet = ScoredTweet(length_prob=length_score_dict,word_prob=word_score_dict,polarity_score=polarity_score_dict,key=key,correct_label = instances[key].label)
         scored_dict[key] = scored_tweet
     return scored_dict"""
+   # scored_dict = build_score_dict(tagged_tweets,length_prob,word_prob,polarity_dict,instances)
+   # print word_prob
+    #w,r = es.display_keys()
+   # es.score_matrix(r)
 
  
 

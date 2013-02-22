@@ -96,7 +96,8 @@ class Tweet(object):
         try:
             self.set_html(urllib.urlopen(self.url).read())
         except Exception as e:
-            sys.stderr.write("tweet.fetch()::Exception({0}): {1}\n".format(e.errno, e.strerr))
+            print e.message()
+           # sys.stderr.write("tweet.fetch()::Exception({0}): {1}\n".format(e.errno, e.strerr))
 
     def fetched(self):
         if self.raw_html is None:

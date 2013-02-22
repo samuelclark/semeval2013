@@ -52,8 +52,8 @@ if __name__=='__main__':
         #output = ("\t".join(row)) + "\t" + text + "\n"
         #tweets_out.write(output)
 
-        if debug_level > 0:
-            sys.stderr.write(output)
+       # if debug_level > 0:
+           # sys.stderr.write(output)
 
         archive_list.append(archive.ArchivedTweet("\t".join(row), tweet.get_html()))
 
