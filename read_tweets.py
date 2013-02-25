@@ -8,7 +8,10 @@ import math
 import os
 import time
 
-from classify import TweetClassifier
+from ngram_classify import NgramClassifier
+from length_classify import LengthClassifier
+from postag_classify import PosTagClassfier
+from repeat_classify import RepeatClassfier
 
 
 if __name__=='__main__':
@@ -35,7 +38,13 @@ if __name__=='__main__':
     tweets,instances,tag_map,tagger,tagged_tweets = prepare_tweet_data(tsvfile,task)
     #polarity_dict = parse_polarity_file("subclues.tff")
 
-    classifier = TweetClassifier(tagged_tweets=tagged_tweets,instances=instances)#tweet_features = btf)#,all_ngrams = all_ngrams)
+ #   ngram_classifier = NgramClassifier(tagged_tweets=tagged_tweets,instances=instances,mode="trigrams",word=False,pos=True,merge=True)#tweet_features = btf)#,all_ngrams = all_ngrams)
+  #  length_classifier = LengthClassifier(tagged_tweets=tagged_tweets,instances=instances,merge=True)
+    #postag_classifier = PosTagClassfier(tagged_tweets=tagged_tweets,instances=instances,merge=True,tag="E")
+   # postag_classifier.train_classifier()
+    repeat_classifier = RepeatClassfier(tagged_tweets=tagged_tweets,instances=instances,merge=True)
+    repeat_classifier.train_classifier()
+   # misc_classifier = MiscClassifier(tagged_tweets=tagged_tweets,instances=instances,mode="unigrams",word=False,pos=True,merge=True).miscclassifier
 
  
 

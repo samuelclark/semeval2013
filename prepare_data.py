@@ -5,7 +5,7 @@ import utils
 import time
 import cPickle
 # from analyze_tweets import AnalyzeTweets
-analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A")
+#analyze = AnalyzeTweets(instances=instances,tweets=tweets,task="A")
 
 def prepare_tweet_data(tsvfile,task):
     # this function is a wrapper for getting the tweets and tagged data ready
@@ -63,9 +63,13 @@ def tag_content(content_file,tweets):
         outfile = open(content_file,"w")
         for key,tweet in tweets.items():
             uid,sid = key
-            text = tweet.text.encode('ascii','ignore')
-            outline ="{0} {1} {2}\n".format(uid,sid,text)
-            outfile.write(outline)
+            text = tweet.text
+            if text:
+                text = text.encode('ascii','ignore')
+                outline ="{0} {1} {2}\n".format(uid,sid,text)
+                outfile.write(outline)
+            else:
+                print "no text {0}\n".format(key)
         outfile.close()
     	command = "{0} {1} > {2}".format(script_path,content_file,tagged_file)
     	print "Calling {0}\n".format(command)
