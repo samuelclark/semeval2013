@@ -8,17 +8,16 @@ from classify import Classifier,nltk
 
 class NgramClassifier(Classifier):
 	def __init__(self, **kargs):
-		Classifier.__init__(self,tagged_tweets=kargs["tagged_tweets"],instances=kargs["instances"],merge=kargs["merge"])
+		Classifier.__init__(self,tagged_tweets=kargs["tagged_tweets"],instances=kargs["instances"],model=kargs["model"],keys=kargs["keys"])
 		self.mode = kargs["mode"]
 		self.inclued_pos = kargs["pos"]
 		self.include_word = kargs["word"]
-		self.merge =  kargs["merge"]
-		self.mode = "unigrams"
-		self.inclued_pos = True
-		self.include_word = True
+		self.mode= kargs["mode"]
+		self.id="ngram{0},m:{1},w:{2},t:{3}".format(self.num_items,self.mode,self.include_word,self.inclued_pos)
 		self.debug=False
 		self.ngram_dict = self.get_ranked_ngrams()
 		self.ranked_ngrams = sorted(self.ngram_dict,key = lambda x: self.ngram_dict[x],reverse=True)
+		self.num_ngrams = len(self.ranked_ngrams)
 		self.context_dict = self.build_ct_dict() 
 		self.prepare_features()
 
@@ -33,12 +32,9 @@ class NgramClassifier(Classifier):
 		# returns <key>,feature_dict for key
 		# all the feature methods are added here 
 
-		word_features = self.word_features(key)
-		#context_features = self.context_features(key)
 		self.count+=1
-		if self.count%500 == 0:
-			print "built {0}/{1} possible vectors".format(self.count,self.num_items)
 
+		word_features = self.word_features(key)
 		return word_features
 
 	
@@ -54,33 +50,37 @@ class NgramClassifier(Classifier):
 				word_fd.inc(ngram)
 				tag_fd[label].inc(ngram)
 
-		num_obj = tag_fd["objective"].N()
 		num_pos = tag_fd["positive"].N()
 		num_neg = tag_fd["negative"].N()
-		num_neu = tag_fd["neutral"].N()
+		#num_neu = tag_fd["neutral"].N()
 		ngram_dict = {}
 
-		total = num_obj + num_pos + num_neu + num_neg
+		total = num_pos + num_neg# + num_neu
 		for ngram,frequency in word_fd.items():
-			obj_metric = BigramAssocMeasures.chi_sq(tag_fd['objective'][ngram],(frequency,num_obj),total)
 			pos_metric = BigramAssocMeasures.chi_sq(tag_fd['positive'][ngram],(frequency,num_pos),total)
 			neg_metric = BigramAssocMeasures.chi_sq(tag_fd['negative'][ngram],(frequency,num_neg),total)
-			neu_metric = BigramAssocMeasures.chi_sq(tag_fd['neutral'][ngram],(frequency,num_neu),total)
-			score = obj_metric + pos_metric + neg_metric + neu_metric
+			#neu_metric = BigramAssocMeasures.chi_sq(tag_fd['neutral'][ngram],(frequency,num_neu),total)
+			score =  pos_metric + neg_metric #+ neu_metric
 			ngram_dict[ngram] = score
 		return ngram_dict
 		
 
 
-	def word_features(self,key,rank=10000):
+	def word_features(self,key):
+		rank = self.num_ngrams/3
 
-		ngrams = set(self.ranked_ngrams[:rank])
+		ngrams = set(self.ranked_ngrams[:1000])
 		ngram_list = self.ngramify(self.tagged_tweets[key])
 		document_ngrams = set(ngram_list)
 		features = {}
+
 		for ngram in ngrams:
-			#if ngram in document_ngrams:
+		#	if self.mode!="unigrams":
+		#		if ngram in document_ngrams:
+		#			features["contains(%s)"%str(ngram)]=(ngram in document_ngrams)
+		#	else:
 			features["contains(%s)"%str(ngram)]=(ngram in document_ngrams)
+
 		return features
 
 
@@ -114,19 +114,20 @@ class NgramClassifier(Classifier):
 
 		return results
 
-	def context_features(self,key,rank=500):
+	def context_features(self,key):
 		# seperate context, target features?
+		rank = self.num_ngrams/4
 		ngrams = set(self.ranked_ngrams[:rank])
 		if key in self.context_dict:
 			condict = self.context_dict[key]
 			context = condict["context"]
+			print context
 			target = condict["target"]
 			features = {}
 			# this just including true features --> should I do this in word_features --> rich!!
 			for ngram in ngrams:
-#				if ngram in context:
-#					features["context(%s)"%str(ngram)] = (ngram in context)
-
+				#if ngram in context:
+				#	features["context(%s)"%str(ngram)] = (ngram in context)
 				features["target(%s)"%str(ngram)] = (ngram in target)
 
 			return features

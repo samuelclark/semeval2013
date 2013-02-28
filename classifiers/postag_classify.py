@@ -6,8 +6,10 @@ from classify import Classifier
 		#r
 class PosTagClassfier(Classifier):
 	def __init__(self,**kargs):
-		Classifier.__init__(self,tagged_tweets=kargs["tagged_tweets"],instances=kargs["instances"],merge=kargs["merge"])
+		Classifier.__init__(self,tagged_tweets=kargs["tagged_tweets"],instances=kargs["instances"],model=kargs["model"],keys=kargs["keys"])
 		self.tag = kargs["tag"]
+		self.id="tagcount{0},tag{1},merged{2}".format(self.num_items,self.tag,self.merge)
+
 
 
 

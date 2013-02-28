@@ -3,7 +3,8 @@ from classify import Classifier
 
 class LengthClassifier(Classifier):
 	def __init__(self, **kargs):
-		Classifier.__init__(self,tagged_tweets=kargs["tagged_tweets"],instances=kargs["instances"],merge=kargs["merge"])
+		Classifier.__init__(self,tagged_tweets=kargs["tagged_tweets"],instances=kargs["instances"],merge=kargs["merge"],model=kargs["model"],keys=kargs["keys"])
+		self.id ="length{0}".format(self.num_items)
 		
 
 
