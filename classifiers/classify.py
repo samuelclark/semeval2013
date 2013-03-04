@@ -24,7 +24,10 @@ class Classifier:
 		self.classiifer_acc = None
 		self.classifier_err = None
 		self.best_features = None
+		self.test_keys = None
 		self.trained=False
+		self.alpha_acc = None
+		self.baseline = None
 
 		# this is for testing should be done elsewhere
 	
@@ -36,12 +39,16 @@ class Classifier:
 			self.train_set = self.featureset[:self.split1]
 			self.dev_set= self.featureset[self.split1:self.split2]
 			self.test_set = self.featureset[self.split2:]
+			self.test_keys = self.keys[self.split2:]
 		elif self.model:
 			self.train_set = self.featureset
 			self.test_set = []
+			self.test_keys = []
 		else:
 			self.train_set = self.featureset[:len(self.featureset)/2]
 			self.test_set = self.featureset[len(self.featureset)/2:]
+			self.test_keys = self.keys[len(self.featureset)/2:]
+
 
 
 	def train_classifier(self):
@@ -58,6 +65,50 @@ class Classifier:
 			if self.debug:
 				self.classifier.show_most_informative_features(10)
 		self.trained=True
+
+	def create_validation_sets(self,featureset,folds):
+		fsets = {}
+		split = len(featureset)/folds
+		startidx = 0
+		for segment in range(1,folds+1):
+			splitidx = split * segment
+			print startidx,splitidx
+			fsets[segment] = featureset[startidx:splitidx]
+			startidx=splitidx
+
+		return fsets
+
+
+
+
+	def cross_validate(self,folds=5):
+		results = []
+		fsets = self.create_validation_sets(self.featureset, folds)
+		for idx in fsets.keys():
+			train_set = []
+			for key in fsets.keys():
+				if key == idx:
+					test_set = fsets[idx]
+				else:
+					train_set +=fsets[idx]
+			classifier = nltk.NaiveBayesClassifier.train(train_set)
+			accuracy = nltk.classify.accuracy(classifier,test_set)
+			results.append(accuracy)
+		return results
+
+			
+
+			# build train set
+				# for each key, pair all other 4 as training set
+				# for key in keys if not this key add to training
+			# build test set
+			# train
+			# test
+			# accuracy
+
+		# {num: <set>}
+
+
 
 	def show_features(self,num=10):
 		self.classifier.show_most_informative_features(num)

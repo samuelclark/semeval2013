@@ -57,19 +57,22 @@ class NgramClassifier(Classifier):
 
 		total = num_pos + num_neg# + num_neu
 		for ngram,frequency in word_fd.items():
-			pos_metric = BigramAssocMeasures.chi_sq(tag_fd['positive'][ngram],(frequency,num_pos),total)
-			neg_metric = BigramAssocMeasures.chi_sq(tag_fd['negative'][ngram],(frequency,num_neg),total)
-			#neu_metric = BigramAssocMeasures.chi_sq(tag_fd['neutral'][ngram],(frequency,num_neu),total)
-			score =  pos_metric + neg_metric #+ neu_metric
-			ngram_dict[ngram] = score
+			try:
+				pos_metric = BigramAssocMeasures.chi_sq(tag_fd['positive'][ngram],(frequency,num_pos),total)
+				neg_metric = BigramAssocMeasures.chi_sq(tag_fd['negative'][ngram],(frequency,num_neg),total)
+				#neu_metric = BigramAssocMeasures.chi_sq(tag_fd['neutral'][ngram],(frequency,num_neu),total)
+				score =  pos_metric + neg_metric #+ neu_metric
+				ngram_dict[ngram] = score
+			except:
+				continue
 		return ngram_dict
 		
 
 
 	def word_features(self,key):
-		rank = self.num_ngrams/3
+		rank = self.num_ngrams/5
 
-		ngrams = set(self.ranked_ngrams[:1000])
+		ngrams = set(self.ranked_ngrams[:rank])
 		ngram_list = self.ngramify(self.tagged_tweets[key])
 		document_ngrams = set(ngram_list)
 		features = {}
@@ -79,7 +82,7 @@ class NgramClassifier(Classifier):
 		#		if ngram in document_ngrams:
 		#			features["contains(%s)"%str(ngram)]=(ngram in document_ngrams)
 		#	else:
-			features["contains(%s)"%str(ngram)]=(ngram in document_ngrams)
+			features["%s(%s)"%(self.mode,str(ngram))]=(ngram in document_ngrams)
 
 		return features
 

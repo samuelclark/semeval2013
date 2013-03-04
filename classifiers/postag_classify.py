@@ -8,7 +8,7 @@ class PosTagClassfier(Classifier):
 	def __init__(self,**kargs):
 		Classifier.__init__(self,tagged_tweets=kargs["tagged_tweets"],instances=kargs["instances"],model=kargs["model"],keys=kargs["keys"])
 		self.tag = kargs["tag"]
-		self.id="tagcount{0},tag{1},merged{2}".format(self.num_items,self.tag,self.merge)
+		self.id="tagcount{0},tag{1}".format(self.num_items,self.tag)
 
 
 
@@ -21,4 +21,5 @@ class PosTagClassfier(Classifier):
 		# we can create a mapping from many emoticons to 3-4 central ones (as seen in other work)
 		tweet = self.tagged_tweets[key]
 		tags = [t for w,t in tweet]
-		return {"tag_count(%s)"%self.tag:tags.count(self.tag)}
+		count = tags.count(self.tag)
+		return {"tag_proportion(%s)"%(self.tag):count}

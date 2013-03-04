@@ -18,6 +18,11 @@
 
 # this should be passed a test set !!!!!
 
+# score tweets by cid
+# build vote dicts
+# can call score_all_classifiers() to use them all
+# evaulate in read_tweets
+# reset
 
 class Vote:
 	def __init__(self,**kargs):
@@ -27,9 +32,10 @@ class Vote:
 		self.cids = self.classifier_dict.keys()
 		self.scored_tweets = {}
 		self.classified_tweets = {} # this is lame but could be used for creating a niave bayse out of this
-		self.score_all_classifiers() # scores all classifiers
-		self.basic_result_dict = self.make_basic_vote()
-		self.weighted_result_dict = self.make_weighted_vote()
+		self.basic_result_dict = {}
+		self.weighted_result_dict = {}
+		self.training =True 
+		#self.score_all_classifiers() # scores all classifiers
 
 	def __str__(self):
 		return str(self.cids)
@@ -41,10 +47,16 @@ class Vote:
 		classifier.instances=self.instances
 		return classifier
 
+	def reset(self):
+		self.scored_tweets = {}
+		self.classified_tweets = {}
+		self.basic_result_dict = {}
+		self.weighted_result_dict = {}
+
 	def score_tweet(self,key,cid):
 		tweet_classifier = self.__get_classifier(cid)
 		classification,score = tweet_classifier.classify(key)
-
+ 
 		if key not in self.scored_tweets:
 			self.scored_tweets[key] = {}
 		if key not in self.classified_tweets:
@@ -54,13 +66,18 @@ class Vote:
 		self.classified_tweets[key][cid] = classification
 		return classification,score
 
+	def build_vote_dicts(self):
+		self.basic_result_dict = self.make_basic_vote()
+		self.weighted_result_dict = self.make_weighted_vote()
+
+
 	def score_tweets_bycid(self,cid):
+		print "scoring votes for {0} \n".format(cid)
 		for key in self.tagged_tweets.keys():
 			c,s = self.score_tweet(key,cid)
 
 
 	def score_all_classifiers(self):
-		print "scoring all {0} classifiers\n".format(len(self.cids))
 		for cid in self.cids:
 			self.score_tweets_bycid(cid)
 
@@ -74,8 +91,7 @@ class Vote:
 	def basic_vote(self,key):
 		# puts the classification for each cid in a list per key
 		res_list = []
-		for cid in self.cids:
-			if key in self.classified_tweets:
+		for cid in self.classified_tweets[key]:
 				res_list.append(self.classified_tweets[key][cid])
 		return res_list
 
@@ -89,8 +105,7 @@ class Vote:
 
 	def weighted_vote(self,key):
 		res_list = []
-		for cid in self.cids:
-			if key in self.scored_tweets:
+		for cid in self.scored_tweets[key]:
 				score = self.get_score(key,cid)
 				res_list.append(score)
 		return res_list
@@ -106,13 +121,16 @@ class Vote:
 	def summarize_weighted_results(self):
 		summarized_dict =  {}
 		for key,result in self.weighted_result_dict.iteritems():
+			num_classifiers = len(result)
 			if key not in summarized_dict:
 				summarized_dict[key] = {}
 			for score in result:
 				for tag,prob in score.items():
-					summarized_dict[key][tag] = summarized_dict[key].get(tag,0) + prob
+					summarized_dict[key][tag] = summarized_dict[key].get(tag,0) + prob/float(num_classifiers)
 		return summarized_dict
 
+###################################################################################################
+# wanted to make an inherited class for this but using vote is easier
 
 
 

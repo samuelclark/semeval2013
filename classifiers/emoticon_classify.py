@@ -13,7 +13,7 @@ class EmoticonClassfier(Classifier):
 
 		words = [word for word,tag in self.tagged_tweets[key]]
 		for emot in set(self.emoticons.keys()):
-			features["contains({0}".format(emot)] = (emot in words)
+			features["emoticon({0})".format(emot)] = (emot in words)
 		return features
 
 	def get_all_emoticons(self):
