@@ -3,9 +3,10 @@ import nltk
 import cPickle
 class Classifier:
 	def __init__(self, **kargs):
-		self.tagged_tweets =kargs["tagged_tweets"]
+		self.tweets =kargs["tweets"]
 		self.instances = kargs["instances"]
 		self.keys = kargs["keys"]
+		self.selection = kargs["selection"]
 		self.debug=False
 		if "model" in kargs:
 			self.model = kargs["model"]
@@ -25,14 +26,15 @@ class Classifier:
 		self.classifier_err = None
 		self.best_features = None
 		self.test_keys = None
+		self.train_keys = None
 		self.trained=False
 		self.alpha_acc = None
 		self.baseline = None
-
+ 
 		# this is for testing should be done elsewhere
 	
 
-	def prepare_features(self):
+	def prepare_features(self,split=.8):
 		self.featureset = self.build_featureset(self.num_items)
 		self.split1,self.split2 = len(self.featureset)/3, 2*len(self.featureset)/3
 		if self.debug:
@@ -44,10 +46,13 @@ class Classifier:
 			self.train_set = self.featureset
 			self.test_set = []
 			self.test_keys = []
+			self.train_keys =self.keys
 		else:
-			self.train_set = self.featureset[:len(self.featureset)/2]
-			self.test_set = self.featureset[len(self.featureset)/2:]
-			self.test_keys = self.keys[len(self.featureset)/2:]
+			splitidx = int(split*len(self.featureset))
+			self.train_set = self.featureset[:splitidx]
+			self.test_set = self.featureset[splitidx:]
+			self.test_keys = self.keys[splitidx:]
+			self.train_keys = self.keys[:splitidx]
 
 
 
@@ -161,6 +166,15 @@ class Classifier:
 		elif mode == "trigrams":
 			word_list = nltk.trigrams(selection)
 		return word_list 
+
+	def get_selected_text(self,tweet):
+		if self.selection =="all":
+			word_list = self.ngramify(tweet.tagged_text)
+		elif self.selection == "target":
+			word_list = self.ngramify(tweet.target)
+		elif self.selection == "context":
+			word_list = self.ngramify(tweet.context)
+		return word_list
 
 	def classify(self,key,prob=True):
 		if self.trained:

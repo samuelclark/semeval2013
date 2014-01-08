@@ -1,19 +1,20 @@
-import tweet
 
-#Maybe I'll just store the SID and UID here instead of storing the tweet?
+# Maybe I'll just store the SID and UID here instead of storing the tweet?
+
+
 class Instance(object):
 
-    def __init__(self, uid, sid, task='A', startpos=None, endpos=None, keyword=None, label=None):
+    def __init__(self, uid, sid, task='A', startpos=None,
+                 endpos=None, key=None, keyword=None, label=None):
         self.uid = uid
         self.sid = sid
-        self.startpos = None
-        self.endpos = None
-        if task=='A':
-            self.startpos = startpos
-            self.endpos = endpos
+        self.key = key
+        if task == 'A':
+            self.startpos = int(startpos)
+            self.endpos = int(endpos)
             self.keyword = None
         else:
-        
+
             self.length = None
             self.keyword = keyword
 
@@ -27,8 +28,15 @@ class Instance(object):
             return 0
 
     def __str__(self):
-        buf = 80*"*"
-        resstr = "{0}\n{1}\t{2}\t{3}\t{4}-{5}\t{6}\t{7}\t{8}\n".format(buf,self.uid,self.sid,self.task,self.startpos,self.endpos,len(self),self.keyword,self.label)
+        buf = 80 * "*"
+        resstr = "{0}\n{1}\t{2}\t{3}\t{4}-{5}\t{6}\t{7}\t{8}\n".format(
+            buf,
+            self.uid,
+            self.sid,
+            self.task,
+            self.startpos,
+            self.endpos,
+            len(self),
+            self.keyword,
+            self.label)
         return resstr
-
-        

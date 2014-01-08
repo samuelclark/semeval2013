@@ -8,18 +8,22 @@ from classify import Classifier,nltk
 
 class NgramClassifier(Classifier):
 	def __init__(self, **kargs):
-		Classifier.__init__(self,tagged_tweets=kargs["tagged_tweets"],instances=kargs["instances"],model=kargs["model"],keys=kargs["keys"])
+		Classifier.__init__(self,tweets=kargs["tweets"],instances=kargs["instances"],model=kargs["model"],keys=kargs["keys"],selection=kargs["selection"])
 		self.mode = kargs["mode"]
 		self.inclued_pos = kargs["pos"]
 		self.include_word = kargs["word"]
 		self.mode= kargs["mode"]
-		self.id="ngram{0},m:{1},w:{2},t:{3}".format(self.num_items,self.mode,self.include_word,self.inclued_pos)
+		self.id="ngram{0},m:{1},w:{2},t:{3},s:{4}".format(self.num_items,self.mode,self.include_word,self.inclued_pos,self.selection)
 		self.debug=False
 		self.ngram_dict = self.get_ranked_ngrams()
 		self.ranked_ngrams = sorted(self.ngram_dict,key = lambda x: self.ngram_dict[x],reverse=True)
 		self.num_ngrams = len(self.ranked_ngrams)
-		self.context_dict = self.build_ct_dict() 
+		self.rank = self.num_ngrams/3
 		self.prepare_features()
+
+	def __str__(self):
+		s = "{0} | {1} | {2}\n".format(self.id,self.num_ngrams,self.rank)
+		return s
 
 
 
@@ -38,12 +42,13 @@ class NgramClassifier(Classifier):
 		return word_features
 
 	
+
 	# NGRAM STUFF
-	def get_ranked_ngrams(self,pos=True):
+	def get_ranked_ngrams(self,wlist="all",pos=True):
 		word_fd = nltk.FreqDist()
 		tag_fd = nltk.ConditionalFreqDist()
-		for key,tweet in self.tagged_tweets.items():
-			word_list = self.ngramify(tweet)
+		for key,tweet in self.tweets.items():
+			word_list = self.get_selected_text(tweet)
 			label = self.instances[key].label
 			for ngram in word_list:
 				# do we want the tag here
@@ -70,10 +75,10 @@ class NgramClassifier(Classifier):
 
 
 	def word_features(self,key):
-		rank = self.num_ngrams/5
 
-		ngrams = set(self.ranked_ngrams[:rank])
-		ngram_list = self.ngramify(self.tagged_tweets[key])
+		ngrams = set(self.ranked_ngrams[:self.rank])
+
+		ngram_list = self.get_selected_text(self.tweets[key])
 		document_ngrams = set(ngram_list)
 		features = {}
 
@@ -82,41 +87,12 @@ class NgramClassifier(Classifier):
 		#		if ngram in document_ngrams:
 		#			features["contains(%s)"%str(ngram)]=(ngram in document_ngrams)
 		#	else:
-			features["%s(%s)"%(self.mode,str(ngram))]=(ngram in document_ngrams)
+
+			features["%s-%s(%s)"%(self.mode,self.selection,str(ngram))]=(ngram in document_ngrams)
 
 		return features
 
-
-	
-
-	# CONTEXT STUFF
-	def build_ct_dict(self):
-		# builds a context target dict
-		# see analyze tweets original for details
-		results = {}
-		for key,tweet in self.tagged_tweets.items():
-		 	start = self.instances[key].startpos
-		 	end = self.instances[key].endpos
-		 	if end < len(tweet):
-
-			 	if start == end:
-			 		target_phrase = tweet[end]
-			 		
-					context = tweet[:start] + tweet[:end]
-				 	context = self.ngramify(context)
-				else:
-
-					target_phrase = self.ngramify(tweet[start:end])
-					context = tweet[:start] + tweet[end:]
-					context= self.ngramify(context)
-				results[key] = {"target":target_phrase,"context":context}
-			else:
-				context = tweet
-				results[key] = {"target":[],"context":context}
-
-
-		return results
-
+"""
 	def context_features(self,key):
 		# seperate context, target features?
 		rank = self.num_ngrams/4
@@ -135,6 +111,6 @@ class NgramClassifier(Classifier):
 
 			return features
 		return {}
-
+"""
 
 

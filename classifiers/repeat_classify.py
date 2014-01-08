@@ -1,9 +1,13 @@
 from classify import Classifier
 import re
-class RepeatClassfier(Classifier):
+class RepeatClassifier(Classifier):
 	def __init__(self,**kargs):
-		Classifier.__init__(self,tagged_tweets=kargs["tagged_tweets"],instances=kargs["instances"],model=kargs["model"],keys=kargs["keys"])
-		self.id="repeat{0}".format(self.num_items)
+		Classifier.__init__(self,tweets=kargs["tweets"],instances=kargs["instances"],model=kargs["model"],keys=kargs["keys"],selection=kargs["selection"])
+		self.mode = "ngram"
+		self.include_word = True
+		self.inclued_pos = True
+		self.id="repeat{0},s:{1}".format(self.num_items,self.selection)
+
 		self.repeat_dict = self.get_all_repeats()
 		self.prepare_features()
 
@@ -29,8 +33,9 @@ class RepeatClassfier(Classifier):
 
 	def get_all_repeats(self):
 		repeat_dict = {}
-		for key,tweet in self.tagged_tweets.items():
-			for word,pos in tweet:
+		for key,tweet in self.tweets.items():
+			word_list = tweet.tagged_text
+			for word,pos in word_list:
 				repeat = self.check_repeat_letters(word)
 				if repeat:
 					repeat_dict[repeat] = repeat_dict.get(repeat,0) + 1
@@ -38,11 +43,9 @@ class RepeatClassfier(Classifier):
 
 	def build_feature_vector(self,key):
 		features = {}
-		words = [word for word,tag in self.tagged_tweets[key]]
+		words = [word for word,tag in self.get_selected_text(self.tweets[key])]
 		for repeat in set(self.repeat_dict.keys()):
-			features["contains({0})".format(repeat)] = (repeat in words)
-
-
+			features["repeat--{0}({1})".format(self.selection,repeat)] = (repeat in words)
 
 		return features
 
