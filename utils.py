@@ -5,6 +5,9 @@ import sys
 from . import tweet as twlib
 
 
+"""
+    Utility functions to help the development process
+"""
 def load_tweets(pickle_file):
     if os.path.exists(pickle_file):
         pickle_in = open(pickle_file, 'rb')

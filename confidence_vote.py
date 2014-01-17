@@ -5,10 +5,9 @@ import math
 class ConfidenceVote(Vote):
 
     """
+        It inherits from the Vote class which provides some general data access methods
         This class uses the estimated classification accuracy (from the classifier)
         to make decisions about unknown tweets. Each classifier gets a 'vote of confidence in the prediction'
-
-        It takes a series of classifiers and implements a voting system to combine them
 
     """
 
