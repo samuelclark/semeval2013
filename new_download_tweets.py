@@ -8,6 +8,11 @@ import json
 from bs4 import BeautifulSoup
 
 import socket
+
+"""
+    This file tries to grab previously unavailable tweets using direct parsing of tweet url
+    There was a problem with unavailable tweets in the provided data. This was a partial fix
+"""
 socket.setdefaulttimeout(10)
 
 cache = {}
