@@ -7,6 +7,12 @@ import csv
 
 
 def tag_emot_content(content_file, data, task="A"):
+    """
+        This function used a Twitter specific ARK tagger from CMU
+        It is much faster and more accurate than python implementations (NLTK)
+        It took a content file and data.
+        The output is parsed back into the tweets objects (see load_tweet_objects)
+    """
     emot_instances = {}
     script_path = "./ark-tweet-nlp-0.3.2/runTagger.sh --output-format conll"
     tagged_file = "emottagged/{0}".format(content_file.replace("content", "tagged"))
@@ -22,6 +28,7 @@ def tag_emot_content(content_file, data, task="A"):
         for tweet in data:
             print len(tweet)
             if len(tweet) == 10:
+                # unpact tweet
                 key = tweet[0]
                 keyword = tweet[1]
                 label = tweet[2].strip()
@@ -56,7 +63,14 @@ def tag_emot_content(content_file, data, task="A"):
 
 
 def load_parsed_tweets(taggedfile):
-    # this function takes the name of a file containing arc tagged tweets.
+    """
+        This function takes the name of a file containing arc tagged tweets and loads it into Tweet objects
+        It uses pattern.db.datasheet to help parse the input
+
+            input:
+                taggedfile: /path/to/postweets
+    """
+
     # the ARK tagger has different tags than the weib polarity set thus we need to create a mapping
     # mapping found -->
     # https://github.com/brendano/ark-tweet-nlp/blob/master/docs/annot_guidelines.md
@@ -96,7 +110,9 @@ def load_parsed_tweets(taggedfile):
 
 
 def load_pickle(fname):
-    # loads a pickle from a file and returns it
+    """
+        Helper function that loads a pickle from a file and returns it
+    """
     try:
         fptr = open(fname, "r")
         data = cPickle.load(fptr)
@@ -117,14 +133,5 @@ with open(cleaned, "wb") as c:
 
 ds = Datasheet.load(cleaned, separator=",", headers=False)
 
-# key,emot,label,tweet
-
 tagged_file, emot_instances = tag_emot_content(cleaned, ds)
 tag_map, tagger, emot_tagged_tweets = load_parsed_tweets(tagged_file)
-
-    # create instance
-    # write content to file
-
-
-# tag tweets from content file
-# load tagged_tweets
