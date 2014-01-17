@@ -1,19 +1,15 @@
-import bs4
-import json
-import urllib
-import StringIO
-import csv
-import sys
-
-
 class Tweet(object):
+
+    """
+        This class is a wrapper for the tweet data found in the provided .tsv data files
+    """
 
     def __init__(self, uid, sid, key, text):
         self.uid = uid
         self.sid = sid
         self.key = key
         self.text = text
-        self.tagged_tweet = None
+        self.tagged_tweet = None # contains part of speech representation of tweet
         self.target = None
         self.other_targets = {}
 
