@@ -6,6 +6,11 @@ import sys
 import re
 
 
+"""
+ This file is a brute force parsing of the provided data files
+ It creates Tweet and Instance dictionaries and pickles them
+ """
+
 # TASK A PARSING
 tsvfile = sys.argv[1]
 keep = ["!", "@", "#"]
