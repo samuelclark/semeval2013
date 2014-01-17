@@ -14,7 +14,7 @@ Task B:
 "Given a message, decide whether the message is of positive, negative, or neutral sentiment. For messages conveying both a positive and negative sentiment, whichever is the stronger sentiment should be chosen."
 
 
-Our submission (I worked under the guidance of Richard Wicentowski (Swat CS) focused on combining multiple feature-based niave bayes classifiers by estimating their accuracy at differing alpha levels (where alpha P(positive) - P(negative).
+Our submission (I worked under the guidance of Richard Wicentowski (Swat CS) focused on combining multiple feature-based niave bayes classifiers by estimating their accuracy at differing alpha levels (where alpha P(positive) - P(negative). An intelligent voting system combined the vote from each classifier to generate a more accurate polarity prediction.
 
 
 The paper was published in SemEval2013 Volume 2 (http://www.newdesign.aclweb.org/anthology/S/S13/S13-2070.pdf)
