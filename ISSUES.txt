@@ -1,7 +1,0 @@
-ISSUES:
-
-
-parsed_tweets.py fixed tagger from tag[1] to tag because we took tuple out of loop in read_tweets
-
-is b1 data working?
-
