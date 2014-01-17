@@ -1,8 +1,11 @@
 
-# Maybe I'll just store the SID and UID here instead of storing the tweet?
-
 
 class Instance(object):
+
+    """
+        This class wraps the Tweet instance meta-data provided in the TSV files
+        Instances are indexed by a uid_sid key
+    """
 
     def __init__(self, uid, sid, task='A', startpos=None,
                  endpos=None, key=None, keyword=None, label=None):
@@ -10,6 +13,7 @@ class Instance(object):
         self.sid = sid
         self.key = key
         if task == 'A':
+            # these determine the polarity context
             self.startpos = int(startpos)
             self.endpos = int(endpos)
             self.keyword = None
