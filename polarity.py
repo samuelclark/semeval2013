@@ -1,8 +1,10 @@
 
 
 def parse_polarity_file(fname, DEBUG=False):
-    # parses subclues.tff
-    # returns {word:<PolarityWord Instance>}
+    """
+        Parses subclues.tff
+        returns {word: PolarityWordInstance}
+    """
     polarity_dict = {}
     with open(fname) as f:
         for line in f:
@@ -13,6 +15,7 @@ def parse_polarity_file(fname, DEBUG=False):
                 cleaned_info = [element.split("=")[1]
                                 for element in word_info if len(element.split("=")) == 2]
                 typ, length, word, pos, stem, polarity = cleaned_info
+                # unpack word into class
                 polarity_word = PolarityWord(
                     type=typ,
                     length=length,
@@ -35,6 +38,10 @@ def parse_polarity_file(fname, DEBUG=False):
 
 class PolarityWord(object):
     # This class is a wrapper for each word object in the Weib subj corpus
+
+    """
+        This class is a wrapper for each word object in the .tff file
+    """
 
     def __init__(self, **kargs):
         self.type = kargs["type"]
@@ -73,6 +80,11 @@ if __name__ == '__main__':
 
 class ScoredTweet(object):
 
+    """
+        Ths class contains a scored tweet which was an initial system of ranking tweets
+        It niavely combines scores from different classifiers without voting system
+    """
+
     def __init__(self, **kargs):
         self.key = kargs["key"]
         self.word_score = kargs["word_prob"]
@@ -95,13 +107,14 @@ class ScoredTweet(object):
         return class_str
 
     def _get_word_score_ratios(self):
-        # uses self.word score to show the ratio of <polairt>/total
-        # useful in helping understand the word_scores
-        # generally ratios >.5 indicate a likely polarity lable other than
-        # objective.
-
+        """
+            uses self.word_score to show the ration of polarity/total
+            useful in understaning the word scores
+            generally ratios >.5 indicate a likely polarity label other than objective
+        """
         result = {}
         total = sum(self.word_score.values())
+        # accumulate scores
         for each in self.word_score:
             try:
                 result[each] = result.get(
@@ -112,8 +125,9 @@ class ScoredTweet(object):
         return result
 
     def _rank_score_dict(self, target_dict):
-        # method to sort {"poliarty":value} dicts into
-        # [(key1,val1),(key2,val2),etc...]
+        """
+            method to sort {"polarity": value} into [(key1, val1), (key2, val2) etc.]
+        """
         sorted_keys = sorted(
             target_dict,
             key=lambda x: target_dict[x],
@@ -124,10 +138,13 @@ class ScoredTweet(object):
     def _rank_all_scores(self):
         # dict containing all the ranked dictionaries belonging to the
         # ScoredTweet class
+        """
+            Creates a dictionary combining the ranked dictionaries of the Scored Tweet isntance
+        """
+        # get words
         ranked_words = self._rank_score_dict(self.word_score)
         ranked_length = self._rank_score_dict(self.length_score)
-        # ugly way to get rid of "occurences":value
-        ranked_length = ranked_length[1:]
+        # get polarity
         ranked_polarity = self._rank_score_dict(self.polarity_score)
         ranked_ratios = self._rank_score_dict(self.ratio_score)
         return (
@@ -140,6 +157,10 @@ class ScoredTweet(object):
 
 class EvaluateScore(object):
 
+    """
+        Combines the information of score_dict to output an accumulated score
+    """
+
     def __init__(self, **kargs):
         self.scored_dict = kargs["scored_dict"]
 
@@ -148,6 +169,9 @@ class EvaluateScore(object):
         return "\n".join(score_list)
 
     def get_score_bykey(self, key):
+        """
+            returns the score associated to <key>
+        """
         try:
             return self.scored_dict[key]
         except:
@@ -155,12 +179,17 @@ class EvaluateScore(object):
             print err
 
     def evaluate_by_ratio(self):
+        """
+            gets ratio of right/wrong predictions
+        """
         outfile = open("ratio_results.txt", "w")
         outfile.write("guessed_tag\tratio_value\tactual_tag\tcorrect\n")
         count = 0
         total = len(self.scored_dict)
+        # loop through score_dict
         for key, scored in self.scored_dict.items():
             correct = scored.correct_label
+            # if not objective
             if scored.ratio_score["objective"] < .8:
                 guess, value = scored.ranked_dict["ranked_ratios"][1]
             else:
@@ -183,6 +212,9 @@ class EvaluateScore(object):
         outfile.close()
 
     def evaluate_by_length(self):
+        """
+            uses length as determining factor instead of ratio
+        """
         outfile = open("lenth_results.txt", "w")
         outfile.write("guessed_tag\tlength_value\tactual_tag\tcorrect\n")
         count = 0
@@ -211,6 +243,10 @@ class EvaluateScore(object):
         outfile.close()
 
     def filter_by_label(self, label="objective"):
+        """
+           default: returns non_objective tweets,
+           or returns tweets of  polarity label specified
+        """
         non_obj = []
         for key, val in self.scored_dict.items():
             if val.correct_label != label:
@@ -249,6 +285,9 @@ class EvaluateScore(object):
         return wrong, results
 
     def score_matrix(self, results):
+        """
+            create an matrix that shows breakdown of results
+        """
         score_dict = {
             "objective": 0.,
             "positive": 0.,
