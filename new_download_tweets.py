@@ -39,8 +39,7 @@ for line in open(sys.argv[1]):
 
             jstt = soup.find_all("p", "js-tweet-text")
             tweets = list(set([x.get_text() for x in jstt]))
-            # print len(tweets)
-            # print tweets
+            # if we got some tweets
             if(len(tweets)) > 1:
                 continue
 
