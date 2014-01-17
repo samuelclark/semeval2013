@@ -9,6 +9,11 @@ import cPickle
 
 
 def prepare_tweet_data(tsvfile, task):
+    """
+        This function combines many helperfunctions such as loading, pos-tagging, clening, and extracting meta information from tweets
+
+    """
+
     # this function is a wrapper for getting the tweets and tagged data ready
     # calls many helperfunctions
     # returns all the core data to read_tweets
@@ -21,21 +26,21 @@ def prepare_tweet_data(tsvfile, task):
     instances = cPickle.load(open(instance_file, "rb"))
     tagged_file = tag_content(content_file, tweets)
 
-    # read tagged stuff
-    # probably fix this based on a parameter
+    # read tagged  data
     tag_map, tagger, tagged_tweets = load_parsed_tweets(tagged_file)
-    # apply tags
     targeted_tweets = find_tweet_targets(tweets, instances)
     finished_tweets = assign_target_phrase(
         targeted_tweets,
         instances,
         tagged_tweets)
-    #tweets = set_tagged_target_context(tweets, instances, tagged_tweets)
-
     return finished_tweets, instances
 
 
 def get_target_context(word_list, sidx, eidx):
+    """
+        function to distinguish tweet polarity target-phrase and surrounding context
+        sidx,eidx = start and end positions
+    """
     if sidx == eidx:
         target = word_list[sidx:eidx]
         context = word_list[:sidx] + word_list[eidx:]
@@ -46,12 +51,18 @@ def get_target_context(word_list, sidx, eidx):
 
 
 def find_tweet_targets(tweets, instances):
+    """
+        Get the target information for each tweet in <tweets>
+        using the information in <instances> 
+        Sometimes there were multiple targets per tweet, this handles that
+    """
     new_tweets = {}
     grouped_tweets = {}
     for uid, key in tweets:
         if uid not in grouped_tweets:
             grouped_tweets[uid] = []
         grouped_tweets[uid].append((uid, key))
+        # for each tweet
     for key, tweet in tweets.items():
         uid, sid = key
         for other in grouped_tweets[uid]:
@@ -61,12 +72,12 @@ def find_tweet_targets(tweets, instances):
                     instances[other].endpos)
         new_tweets[key] = tweet
     return new_tweets
-        # other = {sid (spos,enddpos)}
-
-        # ["This","is","targetA","less","than",'targetB',"fuck you"]
 
 
 def assign_target_phrase(tweets, instances, tagged_tweets):
+    """
+        logic to break down the all the target polarity phrase in a single tweet
+    """
     print "extracting target phrases for this key"
     assigned_tweets = {}
     for key, tweet in tweets.items():
@@ -110,6 +121,14 @@ def assign_target_phrase(tweets, instances, tagged_tweets):
 
 
 def tag_content(content_file, tweets):
+    """
+        This function calls the ark-tagger script using subcommand to tag tweets
+        input:
+            content_file: destination of pre-tag output
+            tweets: dictionary of tweets
+
+        This function writes a <uid sid tweet\n> to a content file that is then read in to ark 
+    """
     # content_file: destination for pre-tag output
     # tweets : dict of tweets
         # this function writes <uid sid tweet\n> to content_file
@@ -125,6 +144,7 @@ def tag_content(content_file, tweets):
     else:
         print "files searched:\n{0}\n".format(tag_dir)
         print "data has not been tagged .... preparing output and running ark script"
+        # write data to outfile
         outfile = open(content_file, "w")
         for key, tweet in tweets.items():
             uid, sid = key
@@ -139,11 +159,13 @@ def tag_content(content_file, tweets):
             else:
                 print "no text {0}\n".format(key)
         outfile.close()
+        # format script command
         command = "{0} {1} > {2}".format(
             script_path,
             content_file,
             tagged_file)
         print "Calling {0}\n".format(command)
+        # tag the tweets 
         subprocess.call([command], shell=True)
     return tagged_file
 
@@ -188,6 +210,9 @@ def load_parsed_tweets(taggedfile):
 
 
 def load_pickle(fname):
+    """
+        Helper function to load pkl object from <fname>
+    """
     # loads a pickle from a file and returns it
     try:
         fptr = open(fname, "r")
@@ -201,12 +226,16 @@ def load_pickle(fname):
 
 
 def prepare_prob_dicts(tagged_tweets, instances, training, tsvfile):
-    # builds word probability and length probability dicts
-    # tweets: dict of tweets
-    # instances: dict of instances
-    # training: boolean
-    # tsvfile: datafile
-    # returns <AnalyzeTweetObj> word_prob length_prob
+    
+    """
+        prepares probability dictionaries
+        # builds word probability and length probability dicts
+        # tweets: dict of tweets
+        # instances: dict of instances
+        # training: boolean
+        # tsvfile: datafile
+        # returns <AnalyzeTweetObj> word_prob length_prob
+    """
     s = time.time()
     pklfile = tsvfile.split("/")[1]
     word_file = "pickles/word_" + pklfile.replace("tsv", "pkl")
@@ -219,6 +248,7 @@ def prepare_prob_dicts(tagged_tweets, instances, training, tsvfile):
         word_prob = load_pickle(word_file)
         length_prob = load_pickle(length_file)
 
+    # check for existing pkl files from the tsv
     elif not word_file.split("/")[1] in pickles or not length_file.split("/")[1] in pickles:
         # if we havn't pickled this data yet.
         print "no pickle files for {0}, creating ...".format(tsvfile)
