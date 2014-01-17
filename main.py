@@ -1,16 +1,14 @@
 #!/usr/bin/python
 
 import sys
-
-from .polarity import parse_polarity_file, PolarityWord, ScoredTweet, EvaluateScore
-from .prepare_data import prepare_tweet_data, prepare_prob_dicts
-#from parse_emot_tweets import emot_tagged_tweets,emot_instances
 import math
 import os
 import time
 import random
 import cPickle
 
+from .data_prep.polarity import parse_polarity_file, PolarityWord, ScoredTweet, EvaluateScore
+from data_prep.prepare_data import prepare_tweet_data, prepare_prob_dicts
 from .classifiers.ngram_classify import NgramClassifier
 from .classifiers.length_classify import LengthClassifier
 from .classifiers.postag_classify import PosTagClassfier
@@ -18,11 +16,11 @@ from .classifiers.repeat_classify import RepeatClassifier
 from .classifiers.emoticon_classify import EmoticonClassifier
 from .classifiers.model_classify import ModelClassifier
 from .classifiers.weib_classify import WeibClassfier
-from .vote import Vote
-from .evaluate_classifiers import evaluate_classifiers, update_classifier_accuracy, get_baseline
+from votes.vote import Vote
+from evaluation.evaluate_classifiers import evaluate_classifiers, update_classifier_accuracy, get_baseline
 from .cresults.eval_classifiers import get_existing_classifiers
-from .dircheck import checkDir, createDir
-from .confidence_vote import ConfidenceVote
+from utils.dircheck import checkDir, createDir
+from votes.confidence_vote import ConfidenceVote
 """
     This is the glue for the entire system
 """
