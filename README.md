@@ -17,4 +17,4 @@ Task B:
 Our submission (I worked under the guidance of Richard Wicentowski (Swat CS) focused on combining multiple feature-based niave bayes classifiers by estimating their accuracy at differing alpha levels (where alpha P(positive) - P(negative). An intelligent voting system combined the vote from each classifier to generate a more accurate polarity prediction.
 
 
-The paper was published in SemEval2013 Volume 2 (http://www.newdesign.aclweb.org/anthology/S/S13/S13-2070.pdf)
+The paper was published in SemEval2013 Volume 2 (http://www.aclweb.org/anthology/S13-2#page=461)
